@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "content_plan.schema.json",
+  "title": "ContentPlan",
+  "type": "object",
+  "required": ["questions", "recommendations", "supporting_points", "trust_block", "cta"],
+  "properties": {
+    "questions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "price_usd"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "price_usd": { "type": "number", "minimum": 0 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "supporting_points": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "trust_block": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "cta": { "type": "string" }
+  },
+  "additionalProperties": false
+}

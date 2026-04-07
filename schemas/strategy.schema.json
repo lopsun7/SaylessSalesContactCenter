@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "strategy.schema.json",
+  "title": "TurnStrategy",
+  "type": "object",
+  "required": [
+    "goal",
+    "tactic",
+    "ask_clarification",
+    "close_level",
+    "focus_points",
+    "avoid"
+  ],
+  "properties": {
+    "goal": {
+      "type": "string",
+      "enum": ["discover", "recommend", "handle_objection", "close", "deescalate"]
+    },
+    "tactic": {
+      "type": "string",
+      "enum": [
+        "ask_2_questions",
+        "recommend_with_tradeoff",
+        "value_plus_lower_tier",
+        "trust_first",
+        "compress_and_offer_next_step",
+        "soft_close"
+      ]
+    },
+    "ask_clarification": { "type": "boolean" },
+    "close_level": { "type": "string", "enum": ["none", "soft", "medium", "hard"] },
+    "focus_points": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["budget", "priority", "use_case", "compatibility", "warranty", "returns", "tradeoff", "objection"]
+      }
+    },
+    "avoid": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["hallucination", "info_overload", "premature_close", "pushy_tone"]
+      }
+    }
+  },
+  "additionalProperties": false
+}

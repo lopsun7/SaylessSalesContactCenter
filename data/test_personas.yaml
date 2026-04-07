@@ -1,0 +1,67 @@
+{
+  "personas": [
+    {
+      "id": "persona_commuter_mid",
+      "name": "Commuter Mid Budget",
+      "traits": ["practical", "price-aware"],
+      "device": "android",
+      "budget_tier": "mid",
+      "top_priorities": ["anc", "value"],
+      "risk_sensitivity": "medium"
+    },
+    {
+      "id": "persona_calls_ios",
+      "name": "iPhone Calls Focus",
+      "traits": ["busy", "direct"],
+      "device": "ios",
+      "budget_tier": "mid",
+      "top_priorities": ["calls", "mic_quality"],
+      "risk_sensitivity": "low"
+    },
+    {
+      "id": "persona_student_budget",
+      "name": "Budget Student",
+      "traits": ["price-sensitive"],
+      "device": "android",
+      "budget_tier": "budget",
+      "top_priorities": ["value", "battery"],
+      "risk_sensitivity": "medium"
+    },
+    {
+      "id": "persona_trust_sensitive",
+      "name": "Trust Sensitive Buyer",
+      "traits": ["skeptical", "cautious"],
+      "device": "ios",
+      "budget_tier": "mid",
+      "top_priorities": ["reliability", "authenticity"],
+      "risk_sensitivity": "high"
+    },
+    {
+      "id": "persona_conflicted",
+      "name": "Conflicting Priorities",
+      "traits": ["indecisive"],
+      "device": "android",
+      "budget_tier": "budget",
+      "top_priorities": ["sound", "value"],
+      "risk_sensitivity": "low"
+    },
+    {
+      "id": "persona_ambiguous",
+      "name": "Ambiguous Intent",
+      "traits": ["vague", "minimal"],
+      "device": "unknown",
+      "budget_tier": "unknown",
+      "top_priorities": [],
+      "risk_sensitivity": "medium"
+    },
+    {
+      "id": "persona_switching",
+      "name": "Mid-call Requirement Switch",
+      "traits": ["changeable"],
+      "device": "ios",
+      "budget_tier": "mid",
+      "top_priorities": ["anc"],
+      "risk_sensitivity": "low"
+    }
+  ]
+}

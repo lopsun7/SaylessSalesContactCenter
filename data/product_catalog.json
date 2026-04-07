@@ -1,0 +1,72 @@
+{
+  "domain": "wireless_earbuds",
+  "currency": "USD",
+  "return_policy_days": 30,
+  "warranty_months": 12,
+  "products": [
+    {
+      "id": "wb-basic-90",
+      "name": "WaveBuds Basic",
+      "price_usd": 89,
+      "tier": "budget",
+      "compatibility": ["ios", "android"],
+      "strengths": ["value", "battery"],
+      "use_cases": ["commute", "casual", "calls"],
+      "features": {
+        "anc": "light",
+        "mic_quality": "good",
+        "fit": "standard",
+        "sweat_resistance": "ipx4",
+        "battery_hours": 28
+      }
+    },
+    {
+      "id": "wb-call-129",
+      "name": "WaveBuds CallPro",
+      "price_usd": 129,
+      "tier": "mid",
+      "compatibility": ["ios", "android"],
+      "strengths": ["calls", "clarity", "value"],
+      "use_cases": ["calls", "work", "commute"],
+      "features": {
+        "anc": "medium",
+        "mic_quality": "very_good",
+        "fit": "standard",
+        "sweat_resistance": "ipx4",
+        "battery_hours": 30
+      }
+    },
+    {
+      "id": "wb-sport-139",
+      "name": "WaveBuds SportFit",
+      "price_usd": 139,
+      "tier": "mid",
+      "compatibility": ["ios", "android"],
+      "strengths": ["fit", "stability", "durability"],
+      "use_cases": ["gym", "running", "calls"],
+      "features": {
+        "anc": "medium",
+        "mic_quality": "good",
+        "fit": "secure",
+        "sweat_resistance": "ipx5",
+        "battery_hours": 26
+      }
+    },
+    {
+      "id": "wb-anc-199",
+      "name": "WaveBuds QuietMax",
+      "price_usd": 199,
+      "tier": "premium",
+      "compatibility": ["ios", "android"],
+      "strengths": ["anc", "sound", "premium"],
+      "use_cases": ["commute", "travel", "music"],
+      "features": {
+        "anc": "strong",
+        "mic_quality": "very_good",
+        "fit": "standard",
+        "sweat_resistance": "ipx4",
+        "battery_hours": 32
+      }
+    }
+  ]
+}

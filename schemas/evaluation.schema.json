@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evaluation.schema.json",
+  "title": "EvaluationResult",
+  "type": "object",
+  "required": [
+    "test_id",
+    "iteration",
+    "dimension_scores",
+    "outcome_label",
+    "failure_tags",
+    "root_cause_layer",
+    "notes"
+  ],
+  "properties": {
+    "test_id": { "type": "string", "minLength": 1 },
+    "iteration": { "type": "string", "minLength": 1 },
+    "dimension_scores": {
+      "type": "object",
+      "required": [
+        "need_discovery",
+        "recommendation_relevance",
+        "objection_handling",
+        "trust_risk",
+        "tone_control",
+        "factual_correctness",
+        "closing_appropriateness"
+      ],
+      "properties": {
+        "need_discovery": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "recommendation_relevance": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "objection_handling": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "trust_risk": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "tone_control": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "factual_correctness": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "closing_appropriateness": { "type": "integer", "minimum": 0, "maximum": 4 }
+      },
+      "additionalProperties": false
+    },
+    "outcome_label": { "type": "string", "enum": ["positive", "neutral", "negative"] },
+    "failure_tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "missed_need_discovery",
+          "recommendation_mismatch",
+          "wrong_objection_handling",
+          "information_overload",
+          "premature_closing",
+          "trust_not_addressed",
+          "conflicting_signals_mishandled",
+          "tone_pressure_mismatch",
+          "hallucinated_claims"
+        ]
+      }
+    },
+    "root_cause_layer": {
+      "type": "string",
+      "enum": [
+        "state_tracking",
+        "signal_extraction",
+        "strategy_selection",
+        "content_planning",
+        "response_generation",
+        "evaluation"
+      ]
+    },
+    "notes": { "type": "string" }
+  },
+  "additionalProperties": false
+}

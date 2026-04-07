@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "response.schema.json",
+  "title": "AgentResponse",
+  "type": "object",
+  "required": ["text", "word_count", "close_level"],
+  "properties": {
+    "text": { "type": "string", "minLength": 1 },
+    "word_count": { "type": "integer", "minimum": 1 },
+    "close_level": { "type": "string", "enum": ["none", "soft", "medium", "hard"] }
+  },
+  "additionalProperties": false
+}

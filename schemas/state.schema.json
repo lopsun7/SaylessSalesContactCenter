@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "state.schema.json",
+  "title": "ConversationState",
+  "type": "object",
+  "required": [
+    "conversation_id",
+    "turn_index",
+    "stage",
+    "slots",
+    "unresolved_objections",
+    "history"
+  ],
+  "properties": {
+    "conversation_id": { "type": "string", "minLength": 1 },
+    "turn_index": { "type": "integer", "minimum": 0 },
+    "stage": {
+      "type": "string",
+      "enum": ["discovery", "recommendation", "objection_handling", "closing"]
+    },
+    "slots": {
+      "type": "object",
+      "required": ["use_case", "budget_tier", "priority", "device"],
+      "properties": {
+        "use_case": { "type": "string", "enum": ["unknown", "commute", "calls", "gym", "running", "music", "work", "casual"] },
+        "budget_tier": { "type": "string", "enum": ["unknown", "budget", "mid", "premium"] },
+        "priority": { "type": "string", "enum": ["unknown", "anc", "calls", "fit", "battery", "value", "sound", "reliability"] },
+        "device": { "type": "string", "enum": ["unknown", "ios", "android"] },
+        "trust_sensitive": { "type": "boolean", "default": false },
+        "conflict_flags": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["price_vs_quality", "feature_vs_budget", "none"] }
+        }
+      },
+      "additionalProperties": false
+    },
+    "unresolved_objections": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["price", "authenticity", "time", "returns", "brand_loyalty"] }
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["role", "text"],
+        "properties": {
+          "role": { "type": "string", "enum": ["user", "agent"] },
+          "text": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -3,123 +3,101 @@
 ## Design Principle
 Improvements must target reusable workflow layers, not one monolithic prompt rewrite.
 
-## Layered Workflow
+## Strict Module Contracts
 
-### 1) Conversation State Tracking
+| Module | Input Contract | Output Contract | Schema File |
+|---|---|---|---|
+| `state_tracker` | previous `ConversationState` + latest user turn text | updated `ConversationState` | `schemas/state.schema.json` |
+| `signal_extractor` | user turn text + `ConversationState` | `UserSignals` | `schemas/signals.schema.json` |
+| `strategy_selector` | `ConversationState` + `UserSignals` + `policy_version.yaml` | `TurnStrategy` | `schemas/strategy.schema.json` |
+| `content_planner` | `TurnStrategy` + `ConversationState` + `UserSignals` + `product_catalog.json` | `ContentPlan` | `schemas/content_plan.schema.json` |
+| `response_generator` | `ContentPlan` + `TurnStrategy` | `AgentResponse` | `schemas/response.schema.json` |
+| `evaluator` | full transcript + final state + final strategy/plan/response | `EvaluationResult` | `schemas/evaluation.schema.json` |
+
+## Layered Workflow (Executable)
+
+### 1) `state_tracker`
 - Input:
-  - Transcript turns, previous structured state, current turn metadata.
+  - previous state object,
+  - current user utterance,
+  - extracted constraints/objections from current turn.
 - Output:
-  - Updated structured state:
-    - user intent,
-    - budget range,
-    - product priorities,
-    - objections encountered,
-    - trust/risk flags,
-    - stage (discovery, recommendation, objection handling, closing).
+  - state with updated slots and stage:
+    - `discovery | recommendation | objection_handling | closing`.
 - Responsibility:
-  - Keep canonical memory and stage progression.
-- Post-call improvement examples:
-  - Better recency handling when user changes requirements.
-  - Improved slot schema for missing fields.
+  - Canonical memory and turn-to-turn consistency.
+- Improvement surface:
+  - slot overwrite policy, stage transition rules.
 
-### 2) User Signal Extraction
+### 2) `signal_extractor`
 - Input:
-  - Latest user utterance + current state.
+  - current user utterance,
+  - optional state context.
 - Output:
-  - Signal object:
-    - intents,
-    - constraints,
-    - sentiment,
-    - objection labels,
-    - ambiguity/conflict tags,
-    - confidence values.
+  - normalized intent, objections, trust flags, ambiguity/conflict, confidence.
 - Responsibility:
-  - Convert raw text to actionable signals.
-- Post-call improvement examples:
-  - New detector for trust concerns.
-  - Better ambiguity threshold tuning.
+  - deterministic label extraction for downstream modules.
+- Improvement surface:
+  - keyword maps, confidence thresholds, ambiguity logic.
 
-### 3) Response Strategy Selection
+### 3) `strategy_selector`
 - Input:
-  - Structured state + signals + policy rules.
+  - state + signals + current policy version.
 - Output:
-  - Strategy object:
-    - turn goal,
-    - tactic,
-    - close aggressiveness level,
-    - required inclusions/exclusions.
+  - tactic selection and close level.
 - Responsibility:
-  - Decide what to do this turn before wording.
-- Post-call improvement examples:
-  - If price objection repeats, choose value+alternative strategy earlier.
-  - Prevent premature closing before readiness criteria.
+  - chooses action type before language generation.
+- Improvement surface:
+  - objection precedence, close gating, fallback behavior.
 
-### 4) Content Planning
+### 4) `content_planner`
 - Input:
-  - Strategy object + product catalog + compliance/guardrail rules.
+  - strategy + state + signals + product catalog.
 - Output:
-  - Ordered plan:
-    - clarifying question(s),
-    - recommendation(s),
-    - supporting evidence,
-    - risk reduction info,
-    - CTA/next-step phrasing.
+  - question list, recommendations, support points, trust block, CTA.
 - Responsibility:
-  - Decide message structure and factual content.
-- Post-call improvement examples:
-  - Reduce info density for low-engagement personas.
-  - Insert trust content blocks when trust flag is active.
+  - factual content planning and ordering.
+- Improvement surface:
+  - recommendation ranking, trust block injection, verbosity shaping.
 
-### 5) Final Response Generation
+### 5) `response_generator`
 - Input:
-  - Content plan + tone/length policies.
+  - content plan + strategy.
 - Output:
-  - User-facing response text (voice-ready format).
+  - final text response with soft length constraints.
 - Responsibility:
-  - Generate concise, coherent, policy-compliant response.
-- Post-call improvement examples:
-  - Tone adaptation templates.
-  - Verbosity control by user engagement signal.
+  - concise and policy-aligned response realization.
+- Improvement surface:
+  - template tuning for tone and compression.
 
-### 6) Post-Call Evaluation
+### 6) `evaluator`
 - Input:
-  - Full transcript + outcome definition + rubric.
+  - transcript + final artifacts (state/signals/strategy/plan/response).
 - Output:
-  - Outcome label (positive/neutral/negative),
-  - failure tags,
-  - per-dimension quality scores,
-  - root-cause layer attribution.
+  - rubric scores, failure tags, root cause layer, outcome label.
 - Responsibility:
-  - Diagnose success/failure with traceable logic.
-- Post-call improvement examples:
-  - Better attribution precision from failure -> layer.
-  - Add evaluator checks for hallucination and pressure tone.
+  - consistent grading for iteration comparison.
+- Improvement surface:
+  - tag attribution precision, score threshold calibration.
 
-### 7) Script/Policy Optimization
+### 7) `policy_optimizer` (next step, not in baseline runtime)
 - Input:
-  - Batch evaluation outputs + current policy version.
+  - historical evaluation outputs.
 - Output:
-  - Versioned policy delta,
-  - rationale,
-  - expected impact,
-  - applied date and affected tests.
+  - `policy_version.yaml` delta with changelog.
 - Responsibility:
-  - Apply bounded updates based on repeated patterns.
-- Post-call improvement examples:
-  - Rule addition: "If trust objection appears, answer trust first."
-  - Rule adjustment: "If ambiguity confidence < threshold, ask clarifier."
+  - bounded and traceable policy updates.
+- Improvement surface:
+  - trigger thresholds and rollback conditions.
 
-## Data Contracts (Suggested)
-- `state.json`
-- `signals.json`
-- `strategy.json`
-- `content_plan.json`
-- `response.txt`
-- `evaluation.json`
-- `policy_version.yaml`
+## Concrete Files in This Repo
+- Catalog: `data/product_catalog.json`
+- Personas: `data/test_personas.yaml`
+- Policy version: `config/policy_version.yaml`
+- Executable cases (8): `tests/executable_cases.yaml`
+- Baseline pipeline: `src/baseline_v0.py`
 
 ## Guardrails
 - No hallucinated product claims outside catalog.
 - No close attempt if critical discovery slots are missing.
 - If user disengagement rises, shorten and simplify response.
-

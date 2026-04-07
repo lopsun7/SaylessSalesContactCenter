@@ -1,0 +1,143 @@
+{
+  "suite": "baseline_v0_launch",
+  "iteration": "v0",
+  "cases": [
+    {
+      "id": "HP-01",
+      "category": "happy_path",
+      "persona_id": "persona_commuter_mid",
+      "user_turns": [
+        "I need earbuds for train commute, noise canceling matters.",
+        "My budget is around 150 and I use Android."
+      ],
+      "expected": {
+        "allowed_outcomes": ["neutral", "positive"],
+        "forbidden_failure_tags": ["hallucinated_claims", "trust_not_addressed"],
+        "required_response_keywords_any": ["noise", "ANC", "commute"],
+        "min_scores": {
+          "need_discovery": 2,
+          "recommendation_relevance": 2
+        }
+      }
+    },
+    {
+      "id": "HP-02",
+      "category": "happy_path",
+      "persona_id": "persona_calls_ios",
+      "user_turns": [
+        "I use iPhone and mostly care about call quality.",
+        "Budget around 130 dollars."
+      ],
+      "expected": {
+        "allowed_outcomes": ["neutral", "positive"],
+        "forbidden_failure_tags": ["recommendation_mismatch"],
+        "required_response_keywords_any": ["call", "mic", "iPhone"],
+        "min_scores": {
+          "need_discovery": 2,
+          "recommendation_relevance": 2
+        }
+      }
+    },
+    {
+      "id": "OBJ-01",
+      "category": "objection",
+      "persona_id": "persona_student_budget",
+      "user_turns": [
+        "I want good earbuds for class and commute.",
+        "That sounds too expensive."
+      ],
+      "expected": {
+        "allowed_outcomes": ["neutral", "positive"],
+        "forbidden_failure_tags": ["wrong_objection_handling"],
+        "required_response_keywords_any": ["lower", "alternative", "value"],
+        "min_scores": {
+          "objection_handling": 2
+        }
+      }
+    },
+    {
+      "id": "OBJ-02",
+      "category": "objection",
+      "persona_id": "persona_trust_sensitive",
+      "user_turns": [
+        "Are these authentic? I worry about fake products.",
+        "If I don't like them can I return?"
+      ],
+      "expected": {
+        "allowed_outcomes": ["neutral", "positive"],
+        "forbidden_failure_tags": ["trust_not_addressed"],
+        "required_response_keywords_any": ["warranty", "return", "authentic"],
+        "min_scores": {
+          "trust_risk": 2
+        }
+      }
+    },
+    {
+      "id": "EDGE-01",
+      "category": "edge",
+      "persona_id": "persona_conflicted",
+      "user_turns": [
+        "I want the best sound but also the cheapest option."
+      ],
+      "expected": {
+        "allowed_outcomes": ["neutral", "positive"],
+        "forbidden_failure_tags": ["hallucinated_claims"],
+        "required_response_keywords_any": ["tradeoff", "between", "priority"],
+        "min_scores": {
+          "need_discovery": 1
+        }
+      }
+    },
+    {
+      "id": "EDGE-02",
+      "category": "edge",
+      "persona_id": "persona_ambiguous",
+      "user_turns": [
+        "Need good earbuds."
+      ],
+      "expected": {
+        "allowed_outcomes": ["neutral"],
+        "forbidden_failure_tags": ["premature_closing"],
+        "required_response_keywords_any": ["budget", "main use", "priority"],
+        "min_scores": {
+          "need_discovery": 1
+        }
+      }
+    },
+    {
+      "id": "EDGE-03",
+      "category": "edge",
+      "persona_id": "persona_switching",
+      "user_turns": [
+        "I initially wanted premium ANC earbuds for commute.",
+        "Actually keep it budget under 100."
+      ],
+      "expected": {
+        "allowed_outcomes": ["neutral", "positive"],
+        "forbidden_failure_tags": ["recommendation_mismatch"],
+        "required_response_keywords_any": ["recommend", "$89", "commute"],
+        "min_scores": {
+          "recommendation_relevance": 2
+        }
+      }
+    },
+    {
+      "id": "IMP-03",
+      "category": "improvement_validation",
+      "persona_id": "persona_ambiguous",
+      "track_for_iterations": true,
+      "user_turns": [
+        "Can you recommend one?",
+        "I don't know, just decent."
+      ],
+      "expected": {
+        "allowed_outcomes": ["neutral"],
+        "forbidden_failure_tags": ["premature_closing"],
+        "required_response_keywords_any": ["clarify", "budget", "use"],
+        "min_scores": {
+          "need_discovery": 1
+        }
+      }
+    }
+  ]
+}
