@@ -24,7 +24,7 @@
       "properties": {
         "budget_tier": { "type": "string", "enum": ["unknown", "budget", "mid", "premium"] },
         "priority": { "type": "string", "enum": ["unknown", "anc", "calls", "fit", "battery", "value", "sound", "reliability"] },
-        "use_case": { "type": "string", "enum": ["unknown", "commute", "calls", "gym", "running", "music", "work", "casual"] },
+        "use_case": { "type": "string", "enum": ["unknown", "commute", "calls", "gym", "running", "music", "work", "casual", "gaming"] },
         "device": { "type": "string", "enum": ["unknown", "ios", "android"] }
       },
       "additionalProperties": false

@@ -23,6 +23,7 @@ Pipeline:
 6. `evaluator`
 
 Main runtime: `src/baseline_v0.py`
+Interactive runtime: `src/live_call_console.py`
 
 ## Two Improvement Channels
 ### 1) Policy Improvement (`what to do`)
@@ -52,6 +53,37 @@ Optimizer: `src/script_optimizer.py`
 
 Iteration orchestrator: `src/run_iterations.py`
 Report generator: `src/generate_iteration_report.py`
+
+## Live LLM Interaction (OpenAI API)
+You can chat with the agent in real time and optionally apply self-improvement from the live call.
+
+Set API key:
+```bash
+export OPENAI_API_KEY=\"<your_key>\"
+```
+
+Start interactive LLM chat:
+```bash
+make chat
+```
+
+Chat + apply self-improvement (writes back to policy/scripts):
+```bash
+make chat-improve
+```
+
+Notes:
+- Live session artifacts are saved under `tests/live_calls/`.
+- In `--mode llm`, ingestion and reply generation are fully LLM-driven (no rule pipeline for turn handling).
+- If API call fails and fallback is enabled in `--mode llm`, the app sends a minimal safe retry prompt.
+- In deterministic mode, fallback behavior remains rule-based.
+- Model can be changed with `OPENAI_MODEL` (default currently `gpt-4.1-mini`).
+
+Direct run examples:
+```bash
+python3 src/live_call_console.py --mode llm --fallback-on-llm-error
+python3 src/live_call_console.py --mode deterministic --ingestion-mode rule
+```
 
 ## One-Command Demo
 Requirements:

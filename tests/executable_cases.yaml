@@ -122,6 +122,24 @@
       }
     },
     {
+      "id": "EDGE-04",
+      "category": "edge",
+      "persona_id": "persona_ambiguous",
+      "user_turns": [
+        "prolly 2000 dollars",
+        "for gaming"
+      ],
+      "expected": {
+        "allowed_outcomes": ["neutral", "positive"],
+        "forbidden_failure_tags": ["missed_need_discovery", "premature_closing"],
+        "required_response_keywords_any": ["recommend", "sound", "latency"],
+        "min_scores": {
+          "need_discovery": 2,
+          "recommendation_relevance": 2
+        }
+      }
+    },
+    {
       "id": "IMP-03",
       "category": "improvement_validation",
       "persona_id": "persona_ambiguous",

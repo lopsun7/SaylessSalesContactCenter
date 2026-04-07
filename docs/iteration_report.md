@@ -9,9 +9,9 @@
 
 | Iteration | Policy | Scripts | Benchmark Pass | Learning Pass | Learning Failures |
 |---|---|---|---:|---:|---|
-| iter_0 | v0 | s0 | 8/8 (100.00%) | 4/6 (66.67%) | trust_not_addressed:1, wrong_objection_handling:2 |
-| iter_1 | v1 | s1 | 8/8 (100.00%) | 5/6 (83.33%) | wrong_objection_handling:2 |
-| iter_2 | v2 | s1 | 8/8 (100.00%) | 6/6 (100.00%) | none |
+| iter_0 | v0 | s0 | 9/9 (100.00%) | 4/6 (66.67%) | trust_not_addressed:1, wrong_objection_handling:2 |
+| iter_1 | v1 | s1 | 9/9 (100.00%) | 5/6 (83.33%) | wrong_objection_handling:2 |
+| iter_2 | v2 | s1 | 9/9 (100.00%) | 6/6 (100.00%) | none |
 
 ## Applied Changes
 
@@ -19,7 +19,7 @@
 - Policy changes:
   - `trust_unresolved_guard` (content_planning): trust_handling.always_include_if_unresolved = true [trigger: trust_not_addressed >= 1, count=1]
 - Script changes:
-  - `price_template_clarity` (response_generation): strengthen price objection phrasing with lower/alternative/value terms [trigger: missing_keywords + wrong_objection_handling, count=4]
+  - `price_template_clarity` (response_generation): strengthen price objection phrasing with lower/alternative/value terms [trigger: wrong_objection_handling (and optional missing_keywords), count=4]
 
 ### Cycle 1 (policy `v1` -> `v2`, scripts `s1` -> `s1`)
 - Policy changes:

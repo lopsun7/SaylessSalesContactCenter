@@ -4,8 +4,8 @@
   "policy_version": "v2",
   "script_version": "s1",
   "summary": {
-    "total": 8,
-    "passed": 8,
+    "total": 9,
+    "passed": 9,
     "failed": 0
   },
   "results": [
@@ -45,6 +45,16 @@
           "device": "android",
           "trust_sensitive": false,
           "conflict_flags": []
+        },
+        "memory": {
+          "use_case": "",
+          "budget": "",
+          "priority": "",
+          "device": "",
+          "intent": "",
+          "objections": [],
+          "trust_concerns": [],
+          "notes": ""
         },
         "unresolved_objections": [],
         "history": [
@@ -123,6 +133,16 @@
           "trust_sensitive": false,
           "conflict_flags": []
         },
+        "memory": {
+          "use_case": "",
+          "budget": "",
+          "priority": "",
+          "device": "",
+          "intent": "",
+          "objections": [],
+          "trust_concerns": [],
+          "notes": ""
+        },
         "unresolved_objections": [],
         "history": [
           {
@@ -187,7 +207,7 @@
         "root_cause_kind": "none",
         "notes": "avg_score=3.43"
       },
-      "final_response": "Based on your needs, I recommend WaveBuds QuietMax ($199). For a lower-cost alternative, WaveBuds Basic ($89) gives solid value without overpaying.",
+      "final_response": "Based on your needs, I recommend WaveBuds QuietMax ($199). For a lower-cost alternative, WaveBuds Basic ($89) gives solid value without overpaying. Tuned for immersive sound and clear directional detail.",
       "final_state": {
         "conversation_id": "OBJ-01",
         "turn_index": 2,
@@ -200,6 +220,16 @@
           "trust_sensitive": false,
           "conflict_flags": []
         },
+        "memory": {
+          "use_case": "",
+          "budget": "",
+          "priority": "",
+          "device": "",
+          "intent": "",
+          "objections": [],
+          "trust_concerns": [],
+          "notes": ""
+        },
         "unresolved_objections": [
           "price"
         ],
@@ -210,7 +240,7 @@
           },
           {
             "role": "agent",
-            "text": "To recommend the right earbuds, What budget range are you targeting? What matters most: ANC, call quality, fit, or price?"
+            "text": "To recommend the right earbuds, What budget range are you targeting? What matters most: ANC, call quality, fit, sound/latency, or price?"
           },
           {
             "role": "user",
@@ -218,7 +248,7 @@
           },
           {
             "role": "agent",
-            "text": "Based on your needs, I recommend WaveBuds QuietMax ($199). For a lower-cost alternative, WaveBuds Basic ($89) gives solid value without overpaying."
+            "text": "Based on your needs, I recommend WaveBuds QuietMax ($199). For a lower-cost alternative, WaveBuds Basic ($89) gives solid value without overpaying. Tuned for immersive sound and clear directional detail."
           }
         ]
       },
@@ -229,7 +259,7 @@
         },
         {
           "role": "agent",
-          "text": "To recommend the right earbuds, What budget range are you targeting? What matters most: ANC, call quality, fit, or price?"
+          "text": "To recommend the right earbuds, What budget range are you targeting? What matters most: ANC, call quality, fit, sound/latency, or price?"
         },
         {
           "role": "user",
@@ -237,7 +267,7 @@
         },
         {
           "role": "agent",
-          "text": "Based on your needs, I recommend WaveBuds QuietMax ($199). For a lower-cost alternative, WaveBuds Basic ($89) gives solid value without overpaying."
+          "text": "Based on your needs, I recommend WaveBuds QuietMax ($199). For a lower-cost alternative, WaveBuds Basic ($89) gives solid value without overpaying. Tuned for immersive sound and clear directional detail."
         }
       ],
       "track_for_iterations": false
@@ -278,6 +308,16 @@
           "device": "unknown",
           "trust_sensitive": true,
           "conflict_flags": []
+        },
+        "memory": {
+          "use_case": "",
+          "budget": "",
+          "priority": "",
+          "device": "",
+          "intent": "",
+          "objections": [],
+          "trust_concerns": [],
+          "notes": ""
         },
         "unresolved_objections": [
           "authenticity",
@@ -346,7 +386,7 @@
         "root_cause_kind": "none",
         "notes": "avg_score=3.14"
       },
-      "final_response": "There is a tradeoff between price and top-tier sound. To recommend the right earbuds, What is your main use: calls, commute, gym, or music?",
+      "final_response": "There is a tradeoff between price and top-tier sound. To recommend the right earbuds, What is your main use (calls, commute, gym, music, gaming, or other)?",
       "final_state": {
         "conversation_id": "EDGE-01",
         "turn_index": 1,
@@ -361,6 +401,16 @@
             "price_vs_quality"
           ]
         },
+        "memory": {
+          "use_case": "",
+          "budget": "",
+          "priority": "",
+          "device": "",
+          "intent": "",
+          "objections": [],
+          "trust_concerns": [],
+          "notes": ""
+        },
         "unresolved_objections": [],
         "history": [
           {
@@ -369,7 +419,7 @@
           },
           {
             "role": "agent",
-            "text": "There is a tradeoff between price and top-tier sound. To recommend the right earbuds, What is your main use: calls, commute, gym, or music?"
+            "text": "There is a tradeoff between price and top-tier sound. To recommend the right earbuds, What is your main use (calls, commute, gym, music, gaming, or other)?"
           }
         ]
       },
@@ -380,7 +430,7 @@
         },
         {
           "role": "agent",
-          "text": "There is a tradeoff between price and top-tier sound. To recommend the right earbuds, What is your main use: calls, commute, gym, or music?"
+          "text": "There is a tradeoff between price and top-tier sound. To recommend the right earbuds, What is your main use (calls, commute, gym, music, gaming, or other)?"
         }
       ],
       "track_for_iterations": false
@@ -409,7 +459,7 @@
         "root_cause_kind": "none",
         "notes": "avg_score=2.86"
       },
-      "final_response": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?",
+      "final_response": "To recommend the right earbuds, What budget range are you targeting? What is your main use (calls, commute, gym, music, gaming, or other)?",
       "final_state": {
         "conversation_id": "EDGE-02",
         "turn_index": 1,
@@ -422,6 +472,16 @@
           "trust_sensitive": false,
           "conflict_flags": []
         },
+        "memory": {
+          "use_case": "",
+          "budget": "",
+          "priority": "",
+          "device": "",
+          "intent": "",
+          "objections": [],
+          "trust_concerns": [],
+          "notes": ""
+        },
         "unresolved_objections": [],
         "history": [
           {
@@ -430,7 +490,7 @@
           },
           {
             "role": "agent",
-            "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?"
+            "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use (calls, commute, gym, music, gaming, or other)?"
           }
         ]
       },
@@ -441,7 +501,7 @@
         },
         {
           "role": "agent",
-          "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?"
+          "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use (calls, commute, gym, music, gaming, or other)?"
         }
       ],
       "track_for_iterations": false
@@ -482,6 +542,16 @@
           "device": "unknown",
           "trust_sensitive": false,
           "conflict_flags": []
+        },
+        "memory": {
+          "use_case": "",
+          "budget": "",
+          "priority": "",
+          "device": "",
+          "intent": "",
+          "objections": [],
+          "trust_concerns": [],
+          "notes": ""
         },
         "unresolved_objections": [],
         "history": [
@@ -524,6 +594,93 @@
       "track_for_iterations": false
     },
     {
+      "id": "EDGE-04",
+      "category": "edge",
+      "persona_id": "persona_ambiguous",
+      "pass": true,
+      "reasons": [],
+      "evaluation": {
+        "test_id": "EDGE-04",
+        "iteration": "iter_2",
+        "dimension_scores": {
+          "need_discovery": 4,
+          "recommendation_relevance": 3,
+          "objection_handling": 3,
+          "trust_risk": 4,
+          "tone_control": 4,
+          "factual_correctness": 4,
+          "closing_appropriateness": 4
+        },
+        "outcome_label": "positive",
+        "failure_tags": [],
+        "root_cause_layer": "evaluation",
+        "root_cause_kind": "none",
+        "notes": "avg_score=3.71"
+      },
+      "final_response": "Based on your needs, I recommend WaveBuds QuietMax ($199). Tuned for immersive sound and clear directional detail. If you want, I can narrow this down to one final pick.",
+      "final_state": {
+        "conversation_id": "EDGE-04",
+        "turn_index": 2,
+        "stage": "recommendation",
+        "slots": {
+          "use_case": "gaming",
+          "budget_tier": "premium",
+          "priority": "sound",
+          "device": "unknown",
+          "trust_sensitive": false,
+          "conflict_flags": []
+        },
+        "memory": {
+          "use_case": "",
+          "budget": "",
+          "priority": "",
+          "device": "",
+          "intent": "",
+          "objections": [],
+          "trust_concerns": [],
+          "notes": ""
+        },
+        "unresolved_objections": [],
+        "history": [
+          {
+            "role": "user",
+            "text": "prolly 2000 dollars"
+          },
+          {
+            "role": "agent",
+            "text": "To recommend the right earbuds, What is your main use (calls, commute, gym, music, gaming, or other)? What matters most: ANC, call quality, fit, sound/latency, or price?"
+          },
+          {
+            "role": "user",
+            "text": "for gaming"
+          },
+          {
+            "role": "agent",
+            "text": "Based on your needs, I recommend WaveBuds QuietMax ($199). Tuned for immersive sound and clear directional detail. If you want, I can narrow this down to one final pick."
+          }
+        ]
+      },
+      "transcript": [
+        {
+          "role": "user",
+          "text": "prolly 2000 dollars"
+        },
+        {
+          "role": "agent",
+          "text": "To recommend the right earbuds, What is your main use (calls, commute, gym, music, gaming, or other)? What matters most: ANC, call quality, fit, sound/latency, or price?"
+        },
+        {
+          "role": "user",
+          "text": "for gaming"
+        },
+        {
+          "role": "agent",
+          "text": "Based on your needs, I recommend WaveBuds QuietMax ($199). Tuned for immersive sound and clear directional detail. If you want, I can narrow this down to one final pick."
+        }
+      ],
+      "track_for_iterations": false
+    },
+    {
       "id": "IMP-03",
       "category": "improvement_validation",
       "persona_id": "persona_ambiguous",
@@ -547,7 +704,7 @@
         "root_cause_kind": "none",
         "notes": "avg_score=2.86"
       },
-      "final_response": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?",
+      "final_response": "To recommend the right earbuds, What budget range are you targeting? What is your main use (calls, commute, gym, music, gaming, or other)?",
       "final_state": {
         "conversation_id": "IMP-03",
         "turn_index": 2,
@@ -560,6 +717,16 @@
           "trust_sensitive": false,
           "conflict_flags": []
         },
+        "memory": {
+          "use_case": "",
+          "budget": "",
+          "priority": "",
+          "device": "",
+          "intent": "",
+          "objections": [],
+          "trust_concerns": [],
+          "notes": ""
+        },
         "unresolved_objections": [],
         "history": [
           {
@@ -568,7 +735,7 @@
           },
           {
             "role": "agent",
-            "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?"
+            "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use (calls, commute, gym, music, gaming, or other)?"
           },
           {
             "role": "user",
@@ -576,7 +743,7 @@
           },
           {
             "role": "agent",
-            "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?"
+            "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use (calls, commute, gym, music, gaming, or other)?"
           }
         ]
       },
@@ -587,7 +754,7 @@
         },
         {
           "role": "agent",
-          "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?"
+          "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use (calls, commute, gym, music, gaming, or other)?"
         },
         {
           "role": "user",
@@ -595,7 +762,7 @@
         },
         {
           "role": "agent",
-          "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?"
+          "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use (calls, commute, gym, music, gaming, or other)?"
         }
       ],
       "track_for_iterations": true

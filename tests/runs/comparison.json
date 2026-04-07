@@ -37,7 +37,7 @@
       "script_changes": [
         {
           "change_id": "price_template_clarity",
-          "trigger": "missing_keywords + wrong_objection_handling",
+          "trigger": "wrong_objection_handling (and optional missing_keywords)",
           "target_layer": "response_generation",
           "apply": "strengthen price objection phrasing with lower/alternative/value terms",
           "expected_effect": "improve objection keyword coverage and clarity",
@@ -90,17 +90,17 @@
         "iteration": "iter_0",
         "policy_version": "v0",
         "script_version": "s0",
-        "total": 8,
-        "passed": 8,
+        "total": 9,
+        "passed": 9,
         "failed": 0,
         "pass_rate": 1.0,
         "outcomes": {
-          "positive": 6,
+          "positive": 7,
           "neutral": 2
         },
         "failure_counts": {},
         "root_cause_kind_counts": {
-          "none": 8
+          "none": 9
         }
       },
       "learning": {
@@ -136,17 +136,17 @@
         "iteration": "iter_1",
         "policy_version": "v1",
         "script_version": "s1",
-        "total": 8,
-        "passed": 8,
+        "total": 9,
+        "passed": 9,
         "failed": 0,
         "pass_rate": 1.0,
         "outcomes": {
-          "positive": 6,
+          "positive": 7,
           "neutral": 2
         },
         "failure_counts": {},
         "root_cause_kind_counts": {
-          "none": 8
+          "none": 9
         }
       },
       "learning": {
@@ -180,17 +180,17 @@
         "iteration": "iter_2",
         "policy_version": "v2",
         "script_version": "s1",
-        "total": 8,
-        "passed": 8,
+        "total": 9,
+        "passed": 9,
         "failed": 0,
         "pass_rate": 1.0,
         "outcomes": {
-          "positive": 6,
+          "positive": 7,
           "neutral": 2
         },
         "failure_counts": {},
         "root_cause_kind_counts": {
-          "none": 8
+          "none": 9
         }
       },
       "learning": {

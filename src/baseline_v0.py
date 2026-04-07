@@ -165,6 +165,16 @@ def initial_state(conversation_id: str) -> Dict[str, Any]:
             "trust_sensitive": False,
             "conflict_flags": [],
         },
+        "memory": {
+            "use_case": "",
+            "budget": "",
+            "priority": "",
+            "device": "",
+            "intent": "",
+            "objections": [],
+            "trust_concerns": [],
+            "notes": "",
+        },
         "unresolved_objections": [],
         "history": [],
     }
@@ -172,6 +182,12 @@ def initial_state(conversation_id: str) -> Dict[str, Any]:
 
 def _contains_any(text: str, words: List[str]) -> bool:
     return any(w in text for w in words)
+
+
+USE_CASE_EQUIVALENTS = {
+    # Catalog is earbuds-only, so gaming maps to sound/calls-adjacent profiles.
+    "gaming": {"music", "calls", "casual", "work"},
+}
 
 
 def detect_budget_tier(text: str) -> str:
@@ -205,6 +221,8 @@ def detect_priority(text: str) -> str:
         return "battery"
     if _contains_any(text, ["cheap", "value", "price", "affordable"]):
         return "value"
+    if _contains_any(text, ["gaming", "game", "fps", "latency", "footstep"]):
+        return "sound"
     if _contains_any(text, ["sound", "music", "bass"]):
         return "sound"
     if _contains_any(text, ["authentic", "genuine", "warranty", "reliable"]):
@@ -215,6 +233,8 @@ def detect_priority(text: str) -> str:
 def detect_use_case(text: str) -> str:
     if _contains_any(text, ["train", "commute", "bus", "travel"]):
         return "commute"
+    if _contains_any(text, ["gaming", "game", "fps", "esports"]):
+        return "gaming"
     if _contains_any(text, ["call", "meeting", "work"]):
         return "calls"
     if _contains_any(text, ["gym", "running", "run", "workout"]):
@@ -470,6 +490,13 @@ def _tier_rank(tier: str) -> int:
     return {"budget": 0, "mid": 1, "premium": 2}.get(tier, 1)
 
 
+def _matches_use_case(user_use_case: str, product_use_cases: List[str]) -> bool:
+    if user_use_case in product_use_cases:
+        return True
+    equivalents = USE_CASE_EQUIVALENTS.get(user_use_case, set())
+    return bool(equivalents.intersection(set(product_use_cases)))
+
+
 def recommend_products(
     catalog: Dict[str, Any],
     state: Dict[str, Any],
@@ -509,7 +536,7 @@ def recommend_products(
                 score += 1
             if priority == "anc" and product["features"]["anc"] in ("medium", "strong"):
                 score += 1
-        if use_case != "unknown" and use_case in product["use_cases"]:
+        if use_case != "unknown" and _matches_use_case(use_case, product["use_cases"]):
             score += use_case_match_weight
         if device != "unknown" and device in product["compatibility"]:
             score += device_match_weight
@@ -552,9 +579,9 @@ def plan_content(
         if state["slots"]["budget_tier"] == "unknown":
             plan["questions"].append("What budget range are you targeting?")
         if state["slots"]["use_case"] == "unknown":
-            plan["questions"].append("What is your main use: calls, commute, gym, or music?")
+            plan["questions"].append("What is your main use (calls, commute, gym, music, gaming, or other)?")
         if state["slots"]["priority"] == "unknown":
-            plan["questions"].append("What matters most: ANC, call quality, fit, or price?")
+            plan["questions"].append("What matters most: ANC, call quality, fit, sound/latency, or price?")
         return plan
 
     primary, alternative = recommend_products(catalog, state, signals, strategy, policy)
@@ -583,6 +610,8 @@ def plan_content(
         plan["supporting_points"].append("Optimized for clear calls and microphone quality.")
     elif priority == "fit":
         plan["supporting_points"].append("Designed for secure fit during movement.")
+    elif priority == "sound":
+        plan["supporting_points"].append("Tuned for immersive sound and clear directional detail.")
     elif priority == "value":
         plan["supporting_points"].append("Best value option while keeping core quality.")
 

@@ -54,6 +54,16 @@
           "trust_sensitive": true,
           "conflict_flags": []
         },
+        "memory": {
+          "use_case": "",
+          "budget": "",
+          "priority": "",
+          "device": "",
+          "intent": "",
+          "objections": [],
+          "trust_concerns": [],
+          "notes": ""
+        },
         "unresolved_objections": [
           "returns",
           "price"
@@ -156,6 +166,16 @@
           "trust_sensitive": true,
           "conflict_flags": []
         },
+        "memory": {
+          "use_case": "",
+          "budget": "",
+          "priority": "",
+          "device": "",
+          "intent": "",
+          "objections": [],
+          "trust_concerns": [],
+          "notes": ""
+        },
         "unresolved_objections": [
           "time",
           "price",
@@ -240,7 +260,7 @@
         "root_cause_kind": "none",
         "notes": "avg_score=3.14"
       },
-      "final_response": "There is a tradeoff between price and top-tier sound. To recommend the right earbuds, What is your main use: calls, commute, gym, or music?",
+      "final_response": "There is a tradeoff between price and top-tier sound. To recommend the right earbuds, What is your main use (calls, commute, gym, music, gaming, or other)?",
       "final_state": {
         "conversation_id": "LIVE-03",
         "turn_index": 1,
@@ -255,6 +275,16 @@
             "price_vs_quality"
           ]
         },
+        "memory": {
+          "use_case": "",
+          "budget": "",
+          "priority": "",
+          "device": "",
+          "intent": "",
+          "objections": [],
+          "trust_concerns": [],
+          "notes": ""
+        },
         "unresolved_objections": [],
         "history": [
           {
@@ -263,7 +293,7 @@
           },
           {
             "role": "agent",
-            "text": "There is a tradeoff between price and top-tier sound. To recommend the right earbuds, What is your main use: calls, commute, gym, or music?"
+            "text": "There is a tradeoff between price and top-tier sound. To recommend the right earbuds, What is your main use (calls, commute, gym, music, gaming, or other)?"
           }
         ]
       },
@@ -274,7 +304,7 @@
         },
         {
           "role": "agent",
-          "text": "There is a tradeoff between price and top-tier sound. To recommend the right earbuds, What is your main use: calls, commute, gym, or music?"
+          "text": "There is a tradeoff between price and top-tier sound. To recommend the right earbuds, What is your main use (calls, commute, gym, music, gaming, or other)?"
         }
       ],
       "track_for_iterations": false
@@ -316,6 +346,16 @@
           "trust_sensitive": false,
           "conflict_flags": []
         },
+        "memory": {
+          "use_case": "",
+          "budget": "",
+          "priority": "",
+          "device": "",
+          "intent": "",
+          "objections": [],
+          "trust_concerns": [],
+          "notes": ""
+        },
         "unresolved_objections": [],
         "history": [
           {
@@ -324,7 +364,7 @@
           },
           {
             "role": "agent",
-            "text": "To recommend the right earbuds, What is your main use: calls, commute, gym, or music?"
+            "text": "To recommend the right earbuds, What is your main use (calls, commute, gym, music, gaming, or other)?"
           },
           {
             "role": "user",
@@ -343,7 +383,7 @@
         },
         {
           "role": "agent",
-          "text": "To recommend the right earbuds, What is your main use: calls, commute, gym, or music?"
+          "text": "To recommend the right earbuds, What is your main use (calls, commute, gym, music, gaming, or other)?"
         },
         {
           "role": "user",
@@ -380,7 +420,7 @@
         "root_cause_kind": "none",
         "notes": "avg_score=2.86"
       },
-      "final_response": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?",
+      "final_response": "To recommend the right earbuds, What budget range are you targeting? What is your main use (calls, commute, gym, music, gaming, or other)?",
       "final_state": {
         "conversation_id": "LIVE-05",
         "turn_index": 1,
@@ -393,6 +433,16 @@
           "trust_sensitive": false,
           "conflict_flags": []
         },
+        "memory": {
+          "use_case": "",
+          "budget": "",
+          "priority": "",
+          "device": "",
+          "intent": "",
+          "objections": [],
+          "trust_concerns": [],
+          "notes": ""
+        },
         "unresolved_objections": [],
         "history": [
           {
@@ -401,7 +451,7 @@
           },
           {
             "role": "agent",
-            "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?"
+            "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use (calls, commute, gym, music, gaming, or other)?"
           }
         ]
       },
@@ -412,7 +462,7 @@
         },
         {
           "role": "agent",
-          "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?"
+          "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use (calls, commute, gym, music, gaming, or other)?"
         }
       ],
       "track_for_iterations": false
@@ -454,6 +504,16 @@
           "trust_sensitive": false,
           "conflict_flags": []
         },
+        "memory": {
+          "use_case": "",
+          "budget": "",
+          "priority": "",
+          "device": "",
+          "intent": "",
+          "objections": [],
+          "trust_concerns": [],
+          "notes": ""
+        },
         "unresolved_objections": [],
         "history": [
           {
@@ -462,7 +522,7 @@
           },
           {
             "role": "agent",
-            "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?"
+            "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use (calls, commute, gym, music, gaming, or other)?"
           },
           {
             "role": "user",
@@ -481,7 +541,7 @@
         },
         {
           "role": "agent",
-          "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?"
+          "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use (calls, commute, gym, music, gaming, or other)?"
         },
         {
           "role": "user",

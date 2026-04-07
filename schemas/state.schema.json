@@ -22,7 +22,7 @@
       "type": "object",
       "required": ["use_case", "budget_tier", "priority", "device"],
       "properties": {
-        "use_case": { "type": "string", "enum": ["unknown", "commute", "calls", "gym", "running", "music", "work", "casual"] },
+        "use_case": { "type": "string", "enum": ["unknown", "commute", "calls", "gym", "running", "music", "work", "casual", "gaming"] },
         "budget_tier": { "type": "string", "enum": ["unknown", "budget", "mid", "premium"] },
         "priority": { "type": "string", "enum": ["unknown", "anc", "calls", "fit", "battery", "value", "sound", "reliability"] },
         "device": { "type": "string", "enum": ["unknown", "ios", "android"] },
@@ -33,6 +33,20 @@
         }
       },
       "additionalProperties": false
+    },
+    "memory": {
+      "type": "object",
+      "properties": {
+        "use_case": { "type": "string" },
+        "budget": { "type": "string" },
+        "priority": { "type": "string" },
+        "device": { "type": "string" },
+        "intent": { "type": "string" },
+        "objections": { "type": "array", "items": { "type": "string" } },
+        "trust_concerns": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": true
     },
     "unresolved_objections": {
       "type": "array",

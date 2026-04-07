@@ -56,11 +56,14 @@ def optimize_script_pack(
 
     candidates: List[Dict[str, Any]] = []
 
-    if signals.get("reason:missing_keywords", 0) >= 1 and signals.get("tag:wrong_objection_handling", 0) >= 1:
+    if (
+        (signals.get("reason:missing_keywords", 0) >= 1 and signals.get("tag:wrong_objection_handling", 0) >= 1)
+        or signals.get("tag:wrong_objection_handling", 0) >= 1
+    ):
         candidates.append(
             {
                 "change_id": "price_template_clarity",
-                "trigger": "missing_keywords + wrong_objection_handling",
+                "trigger": "wrong_objection_handling (and optional missing_keywords)",
                 "target_layer": "response_generation",
                 "apply": "strengthen price objection phrasing with lower/alternative/value terms",
                 "expected_effect": "improve objection keyword coverage and clarity",
