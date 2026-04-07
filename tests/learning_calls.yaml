@@ -1,0 +1,108 @@
+{
+  "suite": "learning_replay_set",
+  "iteration": "v0",
+  "cases": [
+    {
+      "id": "LIVE-01",
+      "category": "replay",
+      "persona_id": "persona_trust_sensitive",
+      "user_turns": [
+        "I want earbuds for gym.",
+        "No returns? I had bad support before.",
+        "also too expensive"
+      ],
+      "expected": {
+        "allowed_outcomes": ["neutral", "positive"],
+        "forbidden_failure_tags": ["trust_not_addressed"],
+        "required_response_keywords_any": ["return", "warranty", "authentic"],
+        "min_scores": {
+          "trust_risk": 2
+        }
+      }
+    },
+    {
+      "id": "LIVE-02",
+      "category": "replay",
+      "persona_id": "persona_student_budget",
+      "user_turns": [
+        "No time. Just tell me one now.",
+        "Too expensive.",
+        "Still not sure if authentic."
+      ],
+      "expected": {
+        "allowed_outcomes": ["neutral", "positive"],
+        "forbidden_failure_tags": ["wrong_objection_handling"],
+        "required_response_keywords_any": ["alternative", "value", "lower"],
+        "min_scores": {
+          "objection_handling": 2
+        }
+      }
+    },
+    {
+      "id": "LIVE-03",
+      "category": "replay",
+      "persona_id": "persona_conflicted",
+      "user_turns": [
+        "Need best ANC but cheapest possible."
+      ],
+      "expected": {
+        "allowed_outcomes": ["neutral", "positive"],
+        "forbidden_failure_tags": ["premature_closing"],
+        "required_response_keywords_any": ["tradeoff", "budget", "use"],
+        "min_scores": {
+          "need_discovery": 1
+        }
+      }
+    },
+    {
+      "id": "LIVE-04",
+      "category": "replay",
+      "persona_id": "persona_switching",
+      "user_turns": [
+        "I need premium ANC.",
+        "Actually make it under 100 and for commute."
+      ],
+      "expected": {
+        "allowed_outcomes": ["neutral", "positive"],
+        "forbidden_failure_tags": ["recommendation_mismatch"],
+        "required_response_keywords_any": ["$89", "recommend", "commute"],
+        "min_scores": {
+          "recommendation_relevance": 2
+        }
+      }
+    },
+    {
+      "id": "LIVE-05",
+      "category": "replay",
+      "persona_id": "persona_ambiguous",
+      "user_turns": [
+        "Recommend one quickly."
+      ],
+      "expected": {
+        "allowed_outcomes": ["neutral", "positive"],
+        "forbidden_failure_tags": ["premature_closing"],
+        "required_response_keywords_any": ["budget", "main use", "priority"],
+        "min_scores": {
+          "need_discovery": 1
+        }
+      }
+    },
+    {
+      "id": "LIVE-06",
+      "category": "replay",
+      "persona_id": "persona_calls_ios",
+      "user_turns": [
+        "I use iphone.",
+        "I care about calls but keep it affordable."
+      ],
+      "expected": {
+        "allowed_outcomes": ["neutral", "positive"],
+        "forbidden_failure_tags": ["recommendation_mismatch"],
+        "required_response_keywords_any": ["call", "recommend"],
+        "min_scores": {
+          "recommendation_relevance": 2
+        }
+      }
+    }
+  ]
+}

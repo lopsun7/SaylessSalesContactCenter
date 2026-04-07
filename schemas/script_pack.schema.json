@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "script_pack.schema.json",
+  "title": "ScriptPack",
+  "type": "object",
+  "required": ["version", "templates", "snippets", "style"],
+  "properties": {
+    "version": { "type": "string", "minLength": 1 },
+    "updated_at": { "type": "string" },
+    "templates": {
+      "type": "object",
+      "required": [
+        "clarify_intro",
+        "tradeoff_prefix",
+        "recommend_main",
+        "price_alternative",
+        "price_fallback",
+        "cta_soft",
+        "cta_close"
+      ],
+      "properties": {
+        "clarify_intro": { "type": "string" },
+        "tradeoff_prefix": { "type": "string" },
+        "recommend_main": { "type": "string" },
+        "price_alternative": { "type": "string" },
+        "price_fallback": { "type": "string" },
+        "cta_soft": { "type": "string" },
+        "cta_close": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "snippets": {
+      "type": "object",
+      "required": ["trust_authentic", "trust_return"],
+      "properties": {
+        "trust_authentic": { "type": "string" },
+        "trust_return": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "style": {
+      "type": "object",
+      "required": ["max_words_soft", "prefer_short_sentences"],
+      "properties": {
+        "max_words_soft": { "type": "integer", "minimum": 20 },
+        "prefer_short_sentences": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

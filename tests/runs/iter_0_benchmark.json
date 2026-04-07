@@ -1,6 +1,6 @@
 {
   "suite": "baseline_v0_launch",
-  "iteration": "v0",
+  "iteration": "iter_0",
   "policy_version": "v0",
   "script_version": "s0",
   "summary": {
@@ -17,7 +17,7 @@
       "reasons": [],
       "evaluation": {
         "test_id": "HP-01",
-        "iteration": "v0",
+        "iteration": "iter_0",
         "dimension_scores": {
           "need_discovery": 4,
           "recommendation_relevance": 3,
@@ -94,7 +94,7 @@
       "reasons": [],
       "evaluation": {
         "test_id": "HP-02",
-        "iteration": "v0",
+        "iteration": "iter_0",
         "dimension_scores": {
           "need_discovery": 4,
           "recommendation_relevance": 3,
@@ -171,7 +171,7 @@
       "reasons": [],
       "evaluation": {
         "test_id": "OBJ-01",
-        "iteration": "v0",
+        "iteration": "iter_0",
         "dimension_scores": {
           "need_discovery": 3,
           "recommendation_relevance": 3,
@@ -250,7 +250,7 @@
       "reasons": [],
       "evaluation": {
         "test_id": "OBJ-02",
-        "iteration": "v0",
+        "iteration": "iter_0",
         "dimension_scores": {
           "need_discovery": 1,
           "recommendation_relevance": 3,
@@ -330,7 +330,7 @@
       "reasons": [],
       "evaluation": {
         "test_id": "EDGE-01",
-        "iteration": "v0",
+        "iteration": "iter_0",
         "dimension_scores": {
           "need_discovery": 3,
           "recommendation_relevance": 1,
@@ -393,7 +393,7 @@
       "reasons": [],
       "evaluation": {
         "test_id": "EDGE-02",
-        "iteration": "v0",
+        "iteration": "iter_0",
         "dimension_scores": {
           "need_discovery": 1,
           "recommendation_relevance": 1,
@@ -454,7 +454,7 @@
       "reasons": [],
       "evaluation": {
         "test_id": "EDGE-03",
-        "iteration": "v0",
+        "iteration": "iter_0",
         "dimension_scores": {
           "need_discovery": 4,
           "recommendation_relevance": 3,
@@ -531,7 +531,7 @@
       "reasons": [],
       "evaluation": {
         "test_id": "IMP-03",
-        "iteration": "v0",
+        "iteration": "iter_0",
         "dimension_scores": {
           "need_discovery": 1,
           "recommendation_relevance": 1,

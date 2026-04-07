@@ -1,0 +1,231 @@
+{
+  "baseline_iteration": "iter_0",
+  "final_iteration": "iter_2",
+  "baseline_versions": {
+    "policy_version": "v0",
+    "script_version": "s0"
+  },
+  "final_versions": {
+    "policy_version": "v2",
+    "script_version": "s1"
+  },
+  "changes_log": [
+    {
+      "cycle": 0,
+      "from": {
+        "policy_version": "v0",
+        "script_version": "s0"
+      },
+      "to": {
+        "policy_version": "v1",
+        "script_version": "s1"
+      },
+      "policy_changes": [
+        {
+          "change_id": "trust_unresolved_guard",
+          "trigger": "trust_not_addressed >= 1",
+          "target_layer": "content_planning",
+          "apply": "trust_handling.always_include_if_unresolved = true",
+          "expected_effect": "Reduce trust-related drop-offs",
+          "trigger_count": 1
+        }
+      ],
+      "policy_signals": {
+        "trust_not_addressed": 1,
+        "wrong_objection_handling": 2
+      },
+      "script_changes": [
+        {
+          "change_id": "price_template_clarity",
+          "trigger": "missing_keywords + wrong_objection_handling",
+          "target_layer": "response_generation",
+          "apply": "strengthen price objection phrasing with lower/alternative/value terms",
+          "expected_effect": "improve objection keyword coverage and clarity",
+          "trigger_count": 4
+        }
+      ],
+      "script_signals": {
+        "tag:trust_not_addressed": 1,
+        "tag:wrong_objection_handling": 2,
+        "reason:missing_keywords": 2
+      }
+    },
+    {
+      "cycle": 1,
+      "from": {
+        "policy_version": "v1",
+        "script_version": "s1"
+      },
+      "to": {
+        "policy_version": "v2",
+        "script_version": "s1"
+      },
+      "policy_changes": [
+        {
+          "change_id": "price_objection_priority",
+          "trigger": "wrong_objection_handling >= 1",
+          "target_layer": "strategy_selection",
+          "apply": "objection_priority puts price before authenticity",
+          "expected_effect": "Address explicit price pushback earlier",
+          "trigger_count": 2
+        }
+      ],
+      "policy_signals": {
+        "wrong_objection_handling": 2
+      },
+      "script_changes": [],
+      "script_signals": {
+        "tag:wrong_objection_handling": 2,
+        "reason:missing_keywords": 1
+      }
+    }
+  ],
+  "iterations": [
+    {
+      "iteration": "iter_0",
+      "policy_version": "v0",
+      "script_version": "s0",
+      "benchmark": {
+        "suite": "baseline_v0_launch",
+        "iteration": "iter_0",
+        "policy_version": "v0",
+        "script_version": "s0",
+        "total": 8,
+        "passed": 8,
+        "failed": 0,
+        "pass_rate": 1.0,
+        "outcomes": {
+          "positive": 6,
+          "neutral": 2
+        },
+        "failure_counts": {},
+        "root_cause_kind_counts": {
+          "none": 8
+        }
+      },
+      "learning": {
+        "suite": "learning_replay_set",
+        "iteration": "iter_0",
+        "policy_version": "v0",
+        "script_version": "s0",
+        "total": 6,
+        "passed": 4,
+        "failed": 2,
+        "pass_rate": 0.6667,
+        "outcomes": {
+          "negative": 1,
+          "neutral": 2,
+          "positive": 3
+        },
+        "failure_counts": {
+          "trust_not_addressed": 1,
+          "wrong_objection_handling": 2
+        },
+        "root_cause_kind_counts": {
+          "decision": 2,
+          "none": 4
+        }
+      }
+    },
+    {
+      "iteration": "iter_1",
+      "policy_version": "v1",
+      "script_version": "s1",
+      "benchmark": {
+        "suite": "baseline_v0_launch",
+        "iteration": "iter_1",
+        "policy_version": "v1",
+        "script_version": "s1",
+        "total": 8,
+        "passed": 8,
+        "failed": 0,
+        "pass_rate": 1.0,
+        "outcomes": {
+          "positive": 6,
+          "neutral": 2
+        },
+        "failure_counts": {},
+        "root_cause_kind_counts": {
+          "none": 8
+        }
+      },
+      "learning": {
+        "suite": "learning_replay_set",
+        "iteration": "iter_1",
+        "policy_version": "v1",
+        "script_version": "s1",
+        "total": 6,
+        "passed": 5,
+        "failed": 1,
+        "pass_rate": 0.8333,
+        "outcomes": {
+          "positive": 4,
+          "neutral": 2
+        },
+        "failure_counts": {
+          "wrong_objection_handling": 2
+        },
+        "root_cause_kind_counts": {
+          "decision": 2,
+          "none": 4
+        }
+      }
+    },
+    {
+      "iteration": "iter_2",
+      "policy_version": "v2",
+      "script_version": "s1",
+      "benchmark": {
+        "suite": "baseline_v0_launch",
+        "iteration": "iter_2",
+        "policy_version": "v2",
+        "script_version": "s1",
+        "total": 8,
+        "passed": 8,
+        "failed": 0,
+        "pass_rate": 1.0,
+        "outcomes": {
+          "positive": 6,
+          "neutral": 2
+        },
+        "failure_counts": {},
+        "root_cause_kind_counts": {
+          "none": 8
+        }
+      },
+      "learning": {
+        "suite": "learning_replay_set",
+        "iteration": "iter_2",
+        "policy_version": "v2",
+        "script_version": "s1",
+        "total": 6,
+        "passed": 6,
+        "failed": 0,
+        "pass_rate": 1.0,
+        "outcomes": {
+          "positive": 5,
+          "neutral": 1
+        },
+        "failure_counts": {},
+        "root_cause_kind_counts": {
+          "none": 6
+        }
+      }
+    }
+  ],
+  "benchmark_delta_vs_baseline": {
+    "pass_rate_delta": 0.0,
+    "passed_delta": 0,
+    "failed_delta": 0,
+    "failure_count_delta": {}
+  },
+  "learning_delta_vs_baseline": {
+    "pass_rate_delta": 0.3333,
+    "passed_delta": 2,
+    "failed_delta": -2,
+    "failure_count_delta": {
+      "trust_not_addressed": -1,
+      "wrong_objection_handling": -2
+    }
+  }
+}

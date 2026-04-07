@@ -1,0 +1,498 @@
+{
+  "suite": "learning_replay_set",
+  "iteration": "iter_0",
+  "policy_version": "v0",
+  "script_version": "s0",
+  "summary": {
+    "total": 6,
+    "passed": 4,
+    "failed": 2
+  },
+  "results": [
+    {
+      "id": "LIVE-01",
+      "category": "replay",
+      "persona_id": "persona_trust_sensitive",
+      "pass": false,
+      "reasons": [
+        "outcome=negative not in allowed_outcomes=['neutral', 'positive']",
+        "forbidden failure tags present: ['trust_not_addressed']",
+        "response does not contain any required keywords: ['return', 'warranty', 'authentic']",
+        "score[trust_risk]=1 < min=2"
+      ],
+      "evaluation": {
+        "test_id": "LIVE-01",
+        "iteration": "iter_0",
+        "dimension_scores": {
+          "need_discovery": 3,
+          "recommendation_relevance": 3,
+          "objection_handling": 1,
+          "trust_risk": 1,
+          "tone_control": 4,
+          "factual_correctness": 4,
+          "closing_appropriateness": 3
+        },
+        "outcome_label": "negative",
+        "failure_tags": [
+          "trust_not_addressed",
+          "wrong_objection_handling"
+        ],
+        "root_cause_layer": "content_planning",
+        "root_cause_kind": "decision",
+        "notes": "avg_score=2.71"
+      },
+      "final_response": "Based on your needs, I recommend WaveBuds SportFit ($139). Designed for secure fit during movement.",
+      "final_state": {
+        "conversation_id": "LIVE-01",
+        "turn_index": 3,
+        "stage": "objection_handling",
+        "slots": {
+          "use_case": "gym",
+          "budget_tier": "unknown",
+          "priority": "fit",
+          "device": "unknown",
+          "trust_sensitive": true,
+          "conflict_flags": []
+        },
+        "unresolved_objections": [
+          "returns",
+          "price"
+        ],
+        "history": [
+          {
+            "role": "user",
+            "text": "I want earbuds for gym."
+          },
+          {
+            "role": "agent",
+            "text": "To recommend the right earbuds, What budget range are you targeting?"
+          },
+          {
+            "role": "user",
+            "text": "No returns? I had bad support before."
+          },
+          {
+            "role": "agent",
+            "text": "Based on your needs, I recommend WaveBuds SportFit ($139). Designed for secure fit during movement. All products are authentic with 12-month warranty. You also get a 30-day return window."
+          },
+          {
+            "role": "user",
+            "text": "also too expensive"
+          },
+          {
+            "role": "agent",
+            "text": "Based on your needs, I recommend WaveBuds SportFit ($139). Designed for secure fit during movement."
+          }
+        ]
+      },
+      "transcript": [
+        {
+          "role": "user",
+          "text": "I want earbuds for gym."
+        },
+        {
+          "role": "agent",
+          "text": "To recommend the right earbuds, What budget range are you targeting?"
+        },
+        {
+          "role": "user",
+          "text": "No returns? I had bad support before."
+        },
+        {
+          "role": "agent",
+          "text": "Based on your needs, I recommend WaveBuds SportFit ($139). Designed for secure fit during movement. All products are authentic with 12-month warranty. You also get a 30-day return window."
+        },
+        {
+          "role": "user",
+          "text": "also too expensive"
+        },
+        {
+          "role": "agent",
+          "text": "Based on your needs, I recommend WaveBuds SportFit ($139). Designed for secure fit during movement."
+        }
+      ],
+      "track_for_iterations": false
+    },
+    {
+      "id": "LIVE-02",
+      "category": "replay",
+      "persona_id": "persona_student_budget",
+      "pass": false,
+      "reasons": [
+        "forbidden failure tags present: ['wrong_objection_handling']",
+        "response does not contain any required keywords: ['alternative', 'value', 'lower']",
+        "score[objection_handling]=1 < min=2"
+      ],
+      "evaluation": {
+        "test_id": "LIVE-02",
+        "iteration": "iter_0",
+        "dimension_scores": {
+          "need_discovery": 1,
+          "recommendation_relevance": 3,
+          "objection_handling": 1,
+          "trust_risk": 4,
+          "tone_control": 4,
+          "factual_correctness": 4,
+          "closing_appropriateness": 3
+        },
+        "outcome_label": "neutral",
+        "failure_tags": [
+          "wrong_objection_handling"
+        ],
+        "root_cause_layer": "strategy_selection",
+        "root_cause_kind": "decision",
+        "notes": "avg_score=2.86"
+      },
+      "final_response": "Based on your needs, I recommend WaveBuds Basic ($89). All products are authentic with 12-month warranty. You also get a 30-day return window.",
+      "final_state": {
+        "conversation_id": "LIVE-02",
+        "turn_index": 3,
+        "stage": "objection_handling",
+        "slots": {
+          "use_case": "unknown",
+          "budget_tier": "unknown",
+          "priority": "reliability",
+          "device": "unknown",
+          "trust_sensitive": true,
+          "conflict_flags": []
+        },
+        "unresolved_objections": [
+          "time",
+          "price",
+          "authenticity"
+        ],
+        "history": [
+          {
+            "role": "user",
+            "text": "No time. Just tell me one now."
+          },
+          {
+            "role": "agent",
+            "text": "Based on your needs, I recommend WaveBuds Basic ($89)."
+          },
+          {
+            "role": "user",
+            "text": "Too expensive."
+          },
+          {
+            "role": "agent",
+            "text": "Based on your needs, I recommend WaveBuds Basic ($89). I will keep this value-focused and avoid higher-priced options."
+          },
+          {
+            "role": "user",
+            "text": "Still not sure if authentic."
+          },
+          {
+            "role": "agent",
+            "text": "Based on your needs, I recommend WaveBuds Basic ($89). All products are authentic with 12-month warranty. You also get a 30-day return window."
+          }
+        ]
+      },
+      "transcript": [
+        {
+          "role": "user",
+          "text": "No time. Just tell me one now."
+        },
+        {
+          "role": "agent",
+          "text": "Based on your needs, I recommend WaveBuds Basic ($89)."
+        },
+        {
+          "role": "user",
+          "text": "Too expensive."
+        },
+        {
+          "role": "agent",
+          "text": "Based on your needs, I recommend WaveBuds Basic ($89). I will keep this value-focused and avoid higher-priced options."
+        },
+        {
+          "role": "user",
+          "text": "Still not sure if authentic."
+        },
+        {
+          "role": "agent",
+          "text": "Based on your needs, I recommend WaveBuds Basic ($89). All products are authentic with 12-month warranty. You also get a 30-day return window."
+        }
+      ],
+      "track_for_iterations": false
+    },
+    {
+      "id": "LIVE-03",
+      "category": "replay",
+      "persona_id": "persona_conflicted",
+      "pass": true,
+      "reasons": [],
+      "evaluation": {
+        "test_id": "LIVE-03",
+        "iteration": "iter_0",
+        "dimension_scores": {
+          "need_discovery": 3,
+          "recommendation_relevance": 1,
+          "objection_handling": 3,
+          "trust_risk": 4,
+          "tone_control": 4,
+          "factual_correctness": 4,
+          "closing_appropriateness": 3
+        },
+        "outcome_label": "positive",
+        "failure_tags": [],
+        "root_cause_layer": "evaluation",
+        "root_cause_kind": "none",
+        "notes": "avg_score=3.14"
+      },
+      "final_response": "There is a tradeoff between price and top-tier sound. To recommend the right earbuds, What is your main use: calls, commute, gym, or music?",
+      "final_state": {
+        "conversation_id": "LIVE-03",
+        "turn_index": 1,
+        "stage": "discovery",
+        "slots": {
+          "use_case": "unknown",
+          "budget_tier": "budget",
+          "priority": "anc",
+          "device": "unknown",
+          "trust_sensitive": false,
+          "conflict_flags": [
+            "price_vs_quality"
+          ]
+        },
+        "unresolved_objections": [],
+        "history": [
+          {
+            "role": "user",
+            "text": "Need best ANC but cheapest possible."
+          },
+          {
+            "role": "agent",
+            "text": "There is a tradeoff between price and top-tier sound. To recommend the right earbuds, What is your main use: calls, commute, gym, or music?"
+          }
+        ]
+      },
+      "transcript": [
+        {
+          "role": "user",
+          "text": "Need best ANC but cheapest possible."
+        },
+        {
+          "role": "agent",
+          "text": "There is a tradeoff between price and top-tier sound. To recommend the right earbuds, What is your main use: calls, commute, gym, or music?"
+        }
+      ],
+      "track_for_iterations": false
+    },
+    {
+      "id": "LIVE-04",
+      "category": "replay",
+      "persona_id": "persona_switching",
+      "pass": true,
+      "reasons": [],
+      "evaluation": {
+        "test_id": "LIVE-04",
+        "iteration": "iter_0",
+        "dimension_scores": {
+          "need_discovery": 4,
+          "recommendation_relevance": 3,
+          "objection_handling": 3,
+          "trust_risk": 4,
+          "tone_control": 4,
+          "factual_correctness": 4,
+          "closing_appropriateness": 4
+        },
+        "outcome_label": "positive",
+        "failure_tags": [],
+        "root_cause_layer": "evaluation",
+        "root_cause_kind": "none",
+        "notes": "avg_score=3.71"
+      },
+      "final_response": "Based on your needs, I recommend WaveBuds Basic ($89). Focused on commute comfort and noise control. If you want, I can narrow this down to one final pick.",
+      "final_state": {
+        "conversation_id": "LIVE-04",
+        "turn_index": 2,
+        "stage": "recommendation",
+        "slots": {
+          "use_case": "commute",
+          "budget_tier": "budget",
+          "priority": "anc",
+          "device": "unknown",
+          "trust_sensitive": false,
+          "conflict_flags": []
+        },
+        "unresolved_objections": [],
+        "history": [
+          {
+            "role": "user",
+            "text": "I need premium ANC."
+          },
+          {
+            "role": "agent",
+            "text": "To recommend the right earbuds, What is your main use: calls, commute, gym, or music?"
+          },
+          {
+            "role": "user",
+            "text": "Actually make it under 100 and for commute."
+          },
+          {
+            "role": "agent",
+            "text": "Based on your needs, I recommend WaveBuds Basic ($89). Focused on commute comfort and noise control. If you want, I can narrow this down to one final pick."
+          }
+        ]
+      },
+      "transcript": [
+        {
+          "role": "user",
+          "text": "I need premium ANC."
+        },
+        {
+          "role": "agent",
+          "text": "To recommend the right earbuds, What is your main use: calls, commute, gym, or music?"
+        },
+        {
+          "role": "user",
+          "text": "Actually make it under 100 and for commute."
+        },
+        {
+          "role": "agent",
+          "text": "Based on your needs, I recommend WaveBuds Basic ($89). Focused on commute comfort and noise control. If you want, I can narrow this down to one final pick."
+        }
+      ],
+      "track_for_iterations": false
+    },
+    {
+      "id": "LIVE-05",
+      "category": "replay",
+      "persona_id": "persona_ambiguous",
+      "pass": true,
+      "reasons": [],
+      "evaluation": {
+        "test_id": "LIVE-05",
+        "iteration": "iter_0",
+        "dimension_scores": {
+          "need_discovery": 1,
+          "recommendation_relevance": 1,
+          "objection_handling": 3,
+          "trust_risk": 4,
+          "tone_control": 4,
+          "factual_correctness": 4,
+          "closing_appropriateness": 3
+        },
+        "outcome_label": "neutral",
+        "failure_tags": [],
+        "root_cause_layer": "evaluation",
+        "root_cause_kind": "none",
+        "notes": "avg_score=2.86"
+      },
+      "final_response": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?",
+      "final_state": {
+        "conversation_id": "LIVE-05",
+        "turn_index": 1,
+        "stage": "discovery",
+        "slots": {
+          "use_case": "unknown",
+          "budget_tier": "unknown",
+          "priority": "unknown",
+          "device": "unknown",
+          "trust_sensitive": false,
+          "conflict_flags": []
+        },
+        "unresolved_objections": [],
+        "history": [
+          {
+            "role": "user",
+            "text": "Recommend one quickly."
+          },
+          {
+            "role": "agent",
+            "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?"
+          }
+        ]
+      },
+      "transcript": [
+        {
+          "role": "user",
+          "text": "Recommend one quickly."
+        },
+        {
+          "role": "agent",
+          "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?"
+        }
+      ],
+      "track_for_iterations": false
+    },
+    {
+      "id": "LIVE-06",
+      "category": "replay",
+      "persona_id": "persona_calls_ios",
+      "pass": true,
+      "reasons": [],
+      "evaluation": {
+        "test_id": "LIVE-06",
+        "iteration": "iter_0",
+        "dimension_scores": {
+          "need_discovery": 4,
+          "recommendation_relevance": 3,
+          "objection_handling": 3,
+          "trust_risk": 4,
+          "tone_control": 4,
+          "factual_correctness": 4,
+          "closing_appropriateness": 4
+        },
+        "outcome_label": "positive",
+        "failure_tags": [],
+        "root_cause_layer": "evaluation",
+        "root_cause_kind": "none",
+        "notes": "avg_score=3.71"
+      },
+      "final_response": "Based on your needs, I recommend WaveBuds Basic ($89). Optimized for clear calls and microphone quality. If you want, I can narrow this down to one final pick.",
+      "final_state": {
+        "conversation_id": "LIVE-06",
+        "turn_index": 2,
+        "stage": "recommendation",
+        "slots": {
+          "use_case": "calls",
+          "budget_tier": "budget",
+          "priority": "calls",
+          "device": "ios",
+          "trust_sensitive": false,
+          "conflict_flags": []
+        },
+        "unresolved_objections": [],
+        "history": [
+          {
+            "role": "user",
+            "text": "I use iphone."
+          },
+          {
+            "role": "agent",
+            "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?"
+          },
+          {
+            "role": "user",
+            "text": "I care about calls but keep it affordable."
+          },
+          {
+            "role": "agent",
+            "text": "Based on your needs, I recommend WaveBuds Basic ($89). Optimized for clear calls and microphone quality. If you want, I can narrow this down to one final pick."
+          }
+        ]
+      },
+      "transcript": [
+        {
+          "role": "user",
+          "text": "I use iphone."
+        },
+        {
+          "role": "agent",
+          "text": "To recommend the right earbuds, What budget range are you targeting? What is your main use: calls, commute, gym, or music?"
+        },
+        {
+          "role": "user",
+          "text": "I care about calls but keep it affordable."
+        },
+        {
+          "role": "agent",
+          "text": "Based on your needs, I recommend WaveBuds Basic ($89). Optimized for clear calls and microphone quality. If you want, I can narrow this down to one final pick."
+        }
+      ],
+      "track_for_iterations": false
+    }
+  ]
+}

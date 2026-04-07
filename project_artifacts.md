@@ -14,6 +14,7 @@
 ## Suggested Next Non-Markdown Artifacts
 - `product_catalog.json`
 - `test_personas.yaml`
+- `script_pack_v0.json`
 - `test_runs/` (directory for transcripts, labels, metrics by iteration)
 
 ## Recommended Implementation Order
@@ -24,4 +25,3 @@
 5. Encode rules from `improvement_policy.md`.
 6. Implement baseline (Iteration 0) and evaluate using `evaluation_rubric.md`.
 7. Run Iteration 1 and Iteration 2, recording evidence in `iteration_log.md`.
-

@@ -3,6 +3,12 @@
 ## Objective
 Define deterministic, explainable rules for converting repeated failures into small, auditable behavior updates.
 
+## Two Improvement Channels
+- Policy improvement:
+  - updates stable behavior rules (`what to do`), such as close gates, objection order, ranking weights.
+- Script improvement:
+  - updates language assets (`how to say it`), such as objection templates, trust snippets, concise phrasing.
+
 ## Policy Unit
 Each policy change should include:
 - `policy_id`
@@ -88,4 +94,3 @@ Each policy change should include:
   - what changed,
   - why,
   - whether observed effect matched expectation.
-

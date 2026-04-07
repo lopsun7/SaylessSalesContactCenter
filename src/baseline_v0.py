@@ -16,6 +16,70 @@ from pathlib import Path
 from statistics import mean
 from typing import Any, Dict, List, Tuple
 
+DEFAULT_POLICY: Dict[str, Any] = {
+    "version": "v0",
+    "updated_at": "2026-04-07",
+    "scope": "wireless_earbuds_text_first",
+    "rules": {
+        "discovery_required_slots": ["use_case", "budget_tier", "priority"],
+        "close_readiness": {
+            "min_discovery_confidence": 0.7,
+            "allow_if_unresolved_objection": False,
+        },
+        "objection_handlers": {
+            "price": "value_plus_lower_tier",
+            "authenticity": "trust_first",
+            "time": "compress_and_offer_next_step",
+            "returns": "trust_first",
+            "brand_loyalty": "recommend_with_tradeoff",
+        },
+        "objection_priority": [
+            "authenticity",
+            "returns",
+            "price",
+            "time",
+            "brand_loyalty",
+        ],
+        "ranking_weights": {
+            "budget_match": 4,
+            "lower_tier_bonus": 1,
+            "over_budget_penalty": 2,
+            "priority_match": 3,
+            "use_case_match": 2,
+            "device_match": 1,
+        },
+        "response_limits": {
+            "max_bullets": 3,
+            "max_words_soft": 80,
+        },
+        "trust_handling": {
+            "always_include_if_unresolved": False,
+        },
+    },
+}
+
+DEFAULT_SCRIPT_PACK: Dict[str, Any] = {
+    "version": "s0",
+    "updated_at": "2026-04-07",
+    "templates": {
+        "clarify_intro": "To recommend the right earbuds, {questions}",
+        "tradeoff_prefix": "There is a tradeoff between price and top-tier sound.",
+        "recommend_main": "Based on your needs, I recommend {name} (${price}).",
+        "price_alternative": "For a lower-cost alternative, {name} (${price}) keeps strong value.",
+        "price_fallback": "I will keep this value-focused and avoid higher-priced options.",
+        "cta_soft": "If you want, I can narrow this down to one final pick.",
+        "cta_close": "If this sounds right, I can help you finalize one option now.",
+    },
+    "snippets": {
+        "trust_authentic": "All products are authentic with {warranty_months}-month warranty.",
+        "trust_return": "You also get a {return_policy_days}-day return window.",
+    },
+    "style": {
+        "max_words_soft": 85,
+        "prefer_short_sentences": True,
+    },
+}
+
 
 def load_json_or_yaml(path: Path) -> Dict[str, Any]:
     """Load JSON, or JSON-compatible YAML (without external dependencies)."""
@@ -27,6 +91,65 @@ def load_json_or_yaml(path: Path) -> Dict[str, Any]:
             f"{path} is not JSON-compatible. Use JSON syntax inside .yaml files "
             "or install a YAML parser."
         ) from exc
+
+
+def load_policy(path: Path | None) -> Dict[str, Any]:
+    if path is None:
+        return deepcopy(DEFAULT_POLICY)
+    loaded = load_json_or_yaml(path)
+    return normalize_policy(loaded)
+
+
+def load_script_pack(path: Path | None) -> Dict[str, Any]:
+    if path is None:
+        return deepcopy(DEFAULT_SCRIPT_PACK)
+    loaded = load_json_or_yaml(path)
+    return normalize_script_pack(loaded)
+
+
+def normalize_policy(policy: Dict[str, Any]) -> Dict[str, Any]:
+    merged = deepcopy(DEFAULT_POLICY)
+    if not isinstance(policy, dict):
+        return merged
+
+    for k, v in policy.items():
+        if k != "rules":
+            merged[k] = v
+
+    rules = policy.get("rules", {})
+    if isinstance(rules, dict):
+        for key, value in rules.items():
+            if key in merged["rules"] and isinstance(merged["rules"][key], dict) and isinstance(value, dict):
+                merged["rules"][key].update(value)
+            else:
+                merged["rules"][key] = value
+
+    return merged
+
+
+def normalize_script_pack(script_pack: Dict[str, Any]) -> Dict[str, Any]:
+    merged = deepcopy(DEFAULT_SCRIPT_PACK)
+    if not isinstance(script_pack, dict):
+        return merged
+
+    for key in ("version", "updated_at"):
+        if key in script_pack:
+            merged[key] = script_pack[key]
+
+    for key in ("templates", "snippets", "style"):
+        value = script_pack.get(key)
+        if isinstance(value, dict):
+            merged[key].update(value)
+
+    return merged
+
+
+def _resolve_tactic(handler_name: str) -> str:
+    mapping = {
+        "compress_response": "compress_and_offer_next_step",
+        "risk_reduction": "trust_first",
+    }
+    return mapping.get(handler_name, handler_name)
 
 
 def initial_state(conversation_id: str) -> Dict[str, Any]:
@@ -190,6 +313,7 @@ def update_state(
     state: Dict[str, Any],
     signals: Dict[str, Any],
     user_text: str,
+    policy: Dict[str, Any],
 ) -> Dict[str, Any]:
     next_state = deepcopy(state)
     next_state["turn_index"] += 1
@@ -214,12 +338,12 @@ def update_state(
     if "ok" in text or "that works" in text:
         next_state["unresolved_objections"] = []
 
-    required_slots = [
-        next_state["slots"]["use_case"],
-        next_state["slots"]["budget_tier"],
-        next_state["slots"]["priority"],
-    ]
-    missing_required = any(x == "unknown" for x in required_slots)
+    required_slot_names = policy["rules"].get(
+        "discovery_required_slots",
+        ["use_case", "budget_tier", "priority"],
+    )
+    required_slots = [next_state["slots"].get(slot, "unknown") for slot in required_slot_names]
+    missing_required = any(value == "unknown" for value in required_slots)
 
     if next_state["unresolved_objections"]:
         next_state["stage"] = "objection_handling"
@@ -236,10 +360,15 @@ def update_state(
 def select_strategy(
     state: Dict[str, Any],
     signals: Dict[str, Any],
+    policy: Dict[str, Any],
 ) -> Dict[str, Any]:
+    required_slot_names = policy["rules"].get(
+        "discovery_required_slots",
+        ["use_case", "budget_tier", "priority"],
+    )
     missing_required = any(
-        state["slots"][slot] == "unknown"
-        for slot in ["use_case", "budget_tier", "priority"]
+        state["slots"].get(slot, "unknown") == "unknown"
+        for slot in required_slot_names
     )
 
     strategy = {
@@ -252,38 +381,34 @@ def select_strategy(
     }
 
     objections = set(signals["objections"]) | set(state["unresolved_objections"])
+    objection_priority = policy["rules"].get(
+        "objection_priority",
+        ["authenticity", "returns", "price", "time", "brand_loyalty"],
+    )
+    handlers = policy["rules"].get("objection_handlers", {})
 
-    if "authenticity" in objections or "authenticity" in signals["trust_flags"]:
+    selected_objection = ""
+    for objection in objection_priority:
+        if objection in objections:
+            selected_objection = objection
+            break
+
+    if selected_objection:
+        tactic = _resolve_tactic(handlers.get(selected_objection, "recommend_with_tradeoff"))
         strategy.update(
             {
                 "goal": "handle_objection",
-                "tactic": "trust_first",
+                "tactic": tactic,
                 "close_level": "none",
-                "focus_points": ["warranty", "returns", "objection"],
+                "focus_points": ["objection"],
             }
         )
-        return strategy
-
-    if "price" in objections:
-        strategy.update(
-            {
-                "goal": "handle_objection",
-                "tactic": "value_plus_lower_tier",
-                "close_level": "none",
-                "focus_points": ["budget", "tradeoff", "objection"],
-            }
-        )
-        return strategy
-
-    if "time" in objections:
-        strategy.update(
-            {
-                "goal": "handle_objection",
-                "tactic": "compress_and_offer_next_step",
-                "close_level": "none",
-                "focus_points": ["priority", "budget"],
-            }
-        )
+        if selected_objection == "price":
+            strategy["focus_points"] = ["budget", "tradeoff", "objection"]
+        elif selected_objection in {"authenticity", "returns"}:
+            strategy["focus_points"] = ["warranty", "returns", "objection"]
+        elif selected_objection == "time":
+            strategy["focus_points"] = ["priority", "budget"]
         return strategy
 
     if signals["conflicts"] or state["slots"]["conflict_flags"]:
@@ -321,7 +446,22 @@ def select_strategy(
         return strategy
 
     if state["stage"] == "closing":
-        strategy.update({"goal": "close", "tactic": "soft_close", "close_level": "soft"})
+        min_conf = policy["rules"].get("close_readiness", {}).get("min_discovery_confidence", 0.7)
+        allow_unresolved = policy["rules"].get("close_readiness", {}).get("allow_if_unresolved_objection", False)
+        can_close = signals["confidence"].get("constraint_confidence", 0.0) >= min_conf
+        if not allow_unresolved and state["unresolved_objections"]:
+            can_close = False
+        if can_close:
+            strategy.update({"goal": "close", "tactic": "soft_close", "close_level": "soft"})
+        else:
+            strategy.update(
+                {
+                    "goal": "discover",
+                    "tactic": "ask_2_questions",
+                    "ask_clarification": True,
+                    "close_level": "none",
+                }
+            )
 
     return strategy
 
@@ -335,6 +475,7 @@ def recommend_products(
     state: Dict[str, Any],
     signals: Dict[str, Any],
     strategy: Dict[str, Any],
+    policy: Dict[str, Any],
 ) -> Tuple[Dict[str, Any] | None, Dict[str, Any] | None]:
     products = catalog["products"]
     budget_tier = state["slots"]["budget_tier"]
@@ -342,28 +483,36 @@ def recommend_products(
     use_case = state["slots"]["use_case"]
     device = state["slots"]["device"]
 
+    weights = policy["rules"].get("ranking_weights", {})
+    budget_match_weight = int(weights.get("budget_match", 4))
+    lower_tier_bonus = int(weights.get("lower_tier_bonus", 1))
+    over_budget_penalty = int(weights.get("over_budget_penalty", 2))
+    priority_match_weight = int(weights.get("priority_match", 3))
+    use_case_match_weight = int(weights.get("use_case_match", 2))
+    device_match_weight = int(weights.get("device_match", 1))
+
     scored: List[Tuple[int, Dict[str, Any]]] = []
     for product in products:
         score = 0
         if budget_tier != "unknown":
             if product["tier"] == budget_tier:
-                score += 4
+                score += budget_match_weight
             elif _tier_rank(product["tier"]) < _tier_rank(budget_tier):
-                score += 1
+                score += lower_tier_bonus
             else:
                 # Penalize suggestions above declared budget tier.
-                score -= 2 * (_tier_rank(product["tier"]) - _tier_rank(budget_tier))
+                score -= over_budget_penalty * (_tier_rank(product["tier"]) - _tier_rank(budget_tier))
         if priority != "unknown":
             if priority in product["strengths"]:
-                score += 3
+                score += priority_match_weight
             if priority == "calls" and product["features"]["mic_quality"] in ("very_good", "good"):
                 score += 1
             if priority == "anc" and product["features"]["anc"] in ("medium", "strong"):
                 score += 1
         if use_case != "unknown" and use_case in product["use_cases"]:
-            score += 2
+            score += use_case_match_weight
         if device != "unknown" and device in product["compatibility"]:
-            score += 1
+            score += device_match_weight
 
         scored.append((score, product))
 
@@ -388,6 +537,8 @@ def plan_content(
     state: Dict[str, Any],
     signals: Dict[str, Any],
     catalog: Dict[str, Any],
+    policy: Dict[str, Any],
+    script_pack: Dict[str, Any],
 ) -> Dict[str, Any]:
     plan: Dict[str, Any] = {
         "questions": [],
@@ -406,7 +557,7 @@ def plan_content(
             plan["questions"].append("What matters most: ANC, call quality, fit, or price?")
         return plan
 
-    primary, alternative = recommend_products(catalog, state, signals, strategy)
+    primary, alternative = recommend_products(catalog, state, signals, strategy, policy)
     if primary:
         plan["recommendations"].append(
             {
@@ -440,29 +591,62 @@ def plan_content(
             "There is a tradeoff between best sound and lowest price; we can prioritize one first."
         )
 
-    if signals["trust_flags"] or "authenticity" in signals["objections"] or "returns" in signals["objections"]:
+    unresolved_trust = any(obj in state["unresolved_objections"] for obj in ("authenticity", "returns"))
+    trust_required = (
+        bool(signals["trust_flags"])
+        or "authenticity" in signals["objections"]
+        or "returns" in signals["objections"]
+    )
+    if policy["rules"].get("trust_handling", {}).get("always_include_if_unresolved", False):
+        trust_required = trust_required or unresolved_trust
+
+    if trust_required:
+        snippets = script_pack.get("snippets", {})
+        authentic_line = snippets.get(
+            "trust_authentic",
+            DEFAULT_SCRIPT_PACK["snippets"]["trust_authentic"],
+        )
+        return_line = snippets.get(
+            "trust_return",
+            DEFAULT_SCRIPT_PACK["snippets"]["trust_return"],
+        )
         plan["trust_block"] = [
-            f"All products are authentic with {catalog['warranty_months']}-month warranty.",
-            f"You also get a {catalog['return_policy_days']}-day return window.",
+            authentic_line.format(warranty_months=catalog["warranty_months"]),
+            return_line.format(return_policy_days=catalog["return_policy_days"]),
         ]
 
+    templates = script_pack.get("templates", {})
     if strategy["goal"] == "close":
-        plan["cta"] = "If this sounds right, I can help you finalize one option now."
+        plan["cta"] = templates.get("cta_close", DEFAULT_SCRIPT_PACK["templates"]["cta_close"])
     else:
-        plan["cta"] = "If you want, I can narrow this down to one final pick."
+        plan["cta"] = templates.get("cta_soft", DEFAULT_SCRIPT_PACK["templates"]["cta_soft"])
 
     return plan
 
 
-def generate_response(plan: Dict[str, Any], strategy: Dict[str, Any], state: Dict[str, Any]) -> str:
+def generate_response(
+    plan: Dict[str, Any],
+    strategy: Dict[str, Any],
+    state: Dict[str, Any],
+    policy: Dict[str, Any],
+    script_pack: Dict[str, Any],
+) -> str:
+    templates = script_pack.get("templates", {})
     if strategy["ask_clarification"]:
         questions = plan["questions"][:2]
         if not questions:
             questions = ["What budget and main use should I optimize for?"]
         prefix = ""
         if "tradeoff" in strategy["focus_points"]:
-            prefix = "There is a tradeoff between price and top-tier sound. "
-        return prefix + "To recommend the right earbuds, " + " ".join(questions)
+            prefix = templates.get(
+                "tradeoff_prefix",
+                DEFAULT_SCRIPT_PACK["templates"]["tradeoff_prefix"],
+            ) + " "
+        clarify_intro = templates.get(
+            "clarify_intro",
+            DEFAULT_SCRIPT_PACK["templates"]["clarify_intro"],
+        )
+        return prefix + clarify_intro.format(questions=" ".join(questions))
 
     lines: List[str] = []
     recs = plan["recommendations"]
@@ -470,14 +654,22 @@ def generate_response(plan: Dict[str, Any], strategy: Dict[str, Any], state: Dic
     if recs:
         main = recs[0]
         lines.append(
-            f"Based on your needs, I recommend {main['name']} (${main['price_usd']})."
+            templates.get("recommend_main", DEFAULT_SCRIPT_PACK["templates"]["recommend_main"]).format(
+                name=main["name"],
+                price=main["price_usd"],
+            )
         )
 
     if strategy["tactic"] == "value_plus_lower_tier" and len(recs) > 1:
         alt = recs[1]
         lines.append(
-            f"For a lower-cost alternative, {alt['name']} (${alt['price_usd']}) keeps strong value."
+            templates.get(
+                "price_alternative",
+                DEFAULT_SCRIPT_PACK["templates"]["price_alternative"],
+            ).format(name=alt["name"], price=alt["price_usd"])
         )
+    elif strategy["tactic"] == "value_plus_lower_tier":
+        lines.append(templates.get("price_fallback", DEFAULT_SCRIPT_PACK["templates"]["price_fallback"]))
 
     if plan["supporting_points"]:
         lines.append(plan["supporting_points"][0])
@@ -492,8 +684,14 @@ def generate_response(plan: Dict[str, Any], strategy: Dict[str, Any], state: Dic
 
     response = " ".join(lines)
     words = response.split()
-    if len(words) > 85:
-        response = " ".join(words[:85])
+    max_words = int(
+        min(
+            policy["rules"].get("response_limits", {}).get("max_words_soft", 80),
+            script_pack.get("style", {}).get("max_words_soft", 85),
+        )
+    )
+    if len(words) > max_words:
+        response = " ".join(words[:max_words])
     return response
 
 
@@ -607,7 +805,19 @@ def evaluate(
         "tone_pressure_mismatch": "response_generation",
         "hallucinated_claims": "content_planning",
     }
+    kind_map = {
+        "missed_need_discovery": "decision",
+        "recommendation_mismatch": "decision",
+        "wrong_objection_handling": "decision",
+        "information_overload": "expression",
+        "premature_closing": "decision",
+        "trust_not_addressed": "decision",
+        "conflicting_signals_mishandled": "decision",
+        "tone_pressure_mismatch": "expression",
+        "hallucinated_claims": "decision",
+    }
     root_cause = root_map[failure_tags[0]] if failure_tags else "evaluation"
+    root_kind = kind_map[failure_tags[0]] if failure_tags else "none"
 
     return {
         "test_id": test_id,
@@ -616,6 +826,7 @@ def evaluate(
         "outcome_label": outcome,
         "failure_tags": failure_tags,
         "root_cause_layer": root_cause,
+        "root_cause_kind": root_kind,
         "notes": f"avg_score={avg_score:.2f}",
     }
 
@@ -673,6 +884,8 @@ def run_case(
     personas: Dict[str, Any],
     catalog: Dict[str, Any],
     iteration: str,
+    policy: Dict[str, Any],
+    script_pack: Dict[str, Any],
 ) -> Dict[str, Any]:
     case_id = case["id"]
     state = initial_state(case_id)
@@ -688,10 +901,10 @@ def run_case(
         state["history"].append({"role": "user", "text": user_turn})
 
         signals = extract_signals(user_turn, state)
-        state = update_state(state, signals, user_turn)
-        strategy = select_strategy(state, signals)
-        plan = plan_content(strategy, state, signals, catalog)
-        response = generate_response(plan, strategy, state)
+        state = update_state(state, signals, user_turn, policy)
+        strategy = select_strategy(state, signals, policy)
+        plan = plan_content(strategy, state, signals, catalog, policy, script_pack)
+        response = generate_response(plan, strategy, state, policy, script_pack)
 
         state["history"].append({"role": "agent", "text": response})
 
@@ -711,7 +924,7 @@ def run_case(
         last_user_turn=last_user,
     )
 
-    passed, reasons = validate_expectations(case["expected"], evaluation, last_response)
+    passed, reasons = validate_expectations(case.get("expected", {}), evaluation, last_response)
 
     return {
         "id": case_id,
@@ -731,14 +944,19 @@ def run_suite(
     cases_file: Path,
     personas_file: Path,
     catalog_file: Path,
+    policy_file: Path | None = None,
+    script_file: Path | None = None,
+    iteration: str | None = None,
 ) -> Dict[str, Any]:
     suite = load_json_or_yaml(cases_file)
     personas = load_json_or_yaml(personas_file)
     catalog = load_json_or_yaml(catalog_file)
+    policy = load_policy(policy_file)
+    script_pack = load_script_pack(script_file)
 
-    iteration = suite.get("iteration", "v0")
+    resolved_iteration = iteration or policy.get("version") or suite.get("iteration", "v0")
     results = [
-        run_case(case, personas, catalog, iteration)
+        run_case(case, personas, catalog, resolved_iteration, policy, script_pack)
         for case in suite["cases"]
     ]
 
@@ -747,7 +965,9 @@ def run_suite(
 
     return {
         "suite": suite.get("suite", "unnamed_suite"),
-        "iteration": iteration,
+        "iteration": resolved_iteration,
+        "policy_version": policy.get("version", "unknown"),
+        "script_version": script_pack.get("version", "unknown"),
         "summary": {
             "total": len(results),
             "passed": passed,
@@ -784,16 +1004,44 @@ def main() -> None:
         help="Path to write run output",
     )
     parser.add_argument(
+        "--policy",
+        default="config/policy_version.yaml",
+        type=Path,
+        help="Path to policy version file",
+    )
+    parser.add_argument(
+        "--scripts",
+        default="assets/script_pack_v0.json",
+        type=Path,
+        help="Path to script/prompt assets file",
+    )
+    parser.add_argument(
+        "--iteration",
+        default=None,
+        type=str,
+        help="Optional iteration label override",
+    )
+    parser.add_argument(
         "--show-failures-only",
         action="store_true",
         help="Print only failed case summaries",
     )
     args = parser.parse_args()
 
-    report = run_suite(args.cases, args.personas, args.catalog)
+    report = run_suite(
+        args.cases,
+        args.personas,
+        args.catalog,
+        args.policy,
+        args.scripts,
+        args.iteration,
+    )
     args.out.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
-    print(f"Suite: {report['suite']} ({report['iteration']})")
+    print(
+        f"Suite: {report['suite']} ({report['iteration']}, "
+        f"policy={report['policy_version']}, scripts={report['script_version']})"
+    )
     print(
         "Summary: "
         f"{report['summary']['passed']}/{report['summary']['total']} passed, "
