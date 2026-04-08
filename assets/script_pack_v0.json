@@ -1,6 +1,6 @@
 {
-  "version": "s0",
-  "updated_at": "2026-04-07",
+  "version": "s1",
+  "updated_at": "2026-04-08",
   "templates": {
     "clarify_intro": "To recommend the right earbuds, {questions}",
     "tradeoff_prefix": "There is a tradeoff between price and top-tier sound.",
@@ -8,7 +8,8 @@
     "price_alternative": "For a lower-cost alternative, {name} (${price}) keeps strong value.",
     "price_fallback": "I will keep this value-focused and avoid higher-priced options.",
     "cta_soft": "If you want, I can narrow this down to one final pick.",
-    "cta_close": "If this sounds right, I can help you finalize one option now."
+    "cta_close": "If this sounds right, I can help you finalize one option now.",
+    "price_direct_response": "I understand price is a concern. Let me suggest a great option that fits your budget."
   },
   "snippets": {
     "trust_authentic": "All products are authentic with {warranty_months}-month warranty.",

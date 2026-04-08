@@ -1,0 +1,67 @@
+{
+  "session_id": "live_20260408T031849Z",
+  "trigger": {
+    "outcome_label": "neutral",
+    "failure_tags": [
+      "wrong_objection_handling"
+    ],
+    "attempted_update": true
+  },
+  "from": {
+    "policy_version": "v0",
+    "script_version": "s0"
+  },
+  "candidate_to": {
+    "policy_version": "v1",
+    "script_version": "s1"
+  },
+  "accepted_to": {
+    "policy_version": "v1",
+    "script_version": "s1"
+  },
+  "accepted_candidate": true,
+  "policy_changes": [
+    {
+      "change_id": "objection_handler_price_update",
+      "apply": "Change price objection handler from 'value_plus_lower_tier' to 'value_plus_lower_tier_offer' to ensure direct price objection addressing with cheaper alternative offered.",
+      "expected_effect": "Agent will directly respond to price objections by offering a lower-tier alternative, improving objection handling and user satisfaction.",
+      "cycle": 0
+    }
+  ],
+  "script_changes": [
+    {
+      "change_id": "add_price_direct_response_template",
+      "apply": "Add 'price_direct_response' template to script pack to enable direct acknowledgment of price concerns before offering alternatives.",
+      "expected_effect": "Agent can explicitly acknowledge price objections, making responses more relevant and improving objection handling.",
+      "cycle": 0
+    }
+  ],
+  "policy_signals": {},
+  "script_signals": {},
+  "optimizer_errors": [],
+  "llm_gate": {
+    "apply_candidate": true,
+    "apply_policy": true,
+    "apply_script_pack": true,
+    "confidence": 0.9,
+    "reasons": [
+      "Candidate updates directly address the root cause of failure by improving price objection handling.",
+      "New policy changes the price objection handler to one that offers a lower-tier alternative, aligning with best practices.",
+      "Script pack adds a direct price objection acknowledgment template, improving relevance and user satisfaction.",
+      "No high-risk changes; updates are targeted and coherent with current policy and script structure."
+    ],
+    "risk_flags": [],
+    "notes": "Applying candidate will likely improve objection handling without introducing regression risks."
+  },
+  "llm_gate_errors": [],
+  "validation": {
+    "evaluation_mode": "llm_gate_only",
+    "learning_suite_skipped": true,
+    "gate_passed": true,
+    "gate_reasons": []
+  },
+  "write_back": {
+    "policy": true,
+    "scripts": true
+  }
+}

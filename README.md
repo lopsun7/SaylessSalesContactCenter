@@ -6,7 +6,7 @@ It demonstrates:
 - sales conversation handling,
 - outcome -> analysis -> targeted improvement loop,
 - explicit improvement logic,
-- at least 2 iteration cycles with evidence.
+- live-call gated self-improvement with traceability.
 
 ## Scope
 - Domain: wireless earbuds e-commerce recommendation/sales.
@@ -35,7 +35,7 @@ Stable behavior rules (decision layer), for example:
 - response limits.
 
 Config: `config/policy_version.yaml`
-Optimizer: `src/policy_optimizer.py`
+Candidate optimizer: `OpenAIChatClient.propose_candidate_updates` in `src/llm_module.py`
 
 ### 2) Script Improvement (`how to say it`)
 Language realization assets (expression layer), for example:
@@ -45,20 +45,19 @@ Language realization assets (expression layer), for example:
 - style constraints.
 
 Config: `assets/script_pack_v0.json`
-Optimizer: `src/script_optimizer.py`
+Candidate optimizer: `OpenAIChatClient.propose_candidate_updates` in `src/llm_module.py`
 
-## Test Strategy
-- Fixed benchmark suite (regression guard): `tests/executable_cases.yaml`
-- Learning replay suite (drives updates): `tests/learning_calls.yaml`
-
-Iteration orchestrator: `src/run_iterations.py`
-Report generator: `src/generate_iteration_report.py`
+## Validation Strategy
+- Primary live-call improvement loop runs in `src/live_call_console.py`.
+- Candidate optimization is LLM-driven.
+- Candidate acceptance is gated by a second LLM judgment (no suite replay in this mode).
 
 ## Live LLM Interaction (OpenAI API)
 You can chat with the agent in real time and optionally apply self-improvement from the live call.
 
 Set API key:
 ```bash
+pip install pydantic
 export OPENAI_API_KEY=\"<your_key>\"
 ```
 
@@ -76,40 +75,23 @@ Notes:
 - Live session artifacts are saved under `tests/live_calls/`.
 - In `--mode llm`, ingestion and reply generation are fully LLM-driven (no rule pipeline for turn handling).
 - If API call fails and fallback is enabled in `--mode llm`, the app sends a minimal safe retry prompt.
-- In deterministic mode, fallback behavior remains rule-based.
+- LLM JSON ingestion/judging uses Pydantic validation plus one retry on parse/schema failure.
 - Model can be changed with `OPENAI_MODEL` (default currently `gpt-4.1-mini`).
+- In self-improve mode, a live negative/failing call now runs a gated loop:
+  - use LLM to propose policy/script candidate updates,
+  - use LLM gate judgment to accept/reject candidate updates,
+  - apply only approved components (policy/script),
+  - append an auditable trace event to `tests/live_calls/improvement_trace.jsonl`.
 
 Direct run examples:
 ```bash
 python3 src/live_call_console.py --mode llm --fallback-on-llm-error
-python3 src/live_call_console.py --mode deterministic --ingestion-mode rule
 ```
-
-## One-Command Demo
-Requirements:
-- `python3`
-- `make`
-
-Run:
-```bash
-make demo
-```
-
-This executes:
-- baseline benchmark run,
-- iterative optimization (`iter_0 -> iter_1 -> iter_2`),
-- report generation.
 
 ## Key Output Artifacts
-- Iteration comparison JSON: `tests/runs/comparison.json`
-- Human-readable report: `docs/iteration_report.md`
-- Iteration log: `iteration_log.md`
-
-## Current Evidence Snapshot
-From the latest run:
-- Benchmark pass rate: `100%` throughout (no regression)
-- Learning pass rate: `66.67% -> 83.33% -> 100%`
-- Versions: `policy v0 -> v2`, `scripts s0 -> s1`
+- Live session output: `tests/live_calls/<SESSION_ID>.json`
+- Live self-improvement loop output: `tests/live_calls/<SESSION_ID>_improvement.json`
+- Improvement trace stream: `tests/live_calls/improvement_trace.jsonl`
 
 ## Supporting Design Docs
 - `requirements.md`
@@ -121,4 +103,4 @@ From the latest run:
 
 ## Notes
 - This repository intentionally prioritizes explainability and reproducibility for take-home assessment evaluation.
-- No external LLM API is required for this deterministic baseline simulation.
+- Live mode requires OpenAI API access.

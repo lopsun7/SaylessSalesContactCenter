@@ -1,0 +1,293 @@
+{
+  "session_id": "live_20260408T014145Z",
+  "timestamp_utc": "2026-04-08T01:48:53.659726+00:00",
+  "mode": "llm",
+  "ingestion_mode": "llm",
+  "policy_version": "v0",
+  "script_version": "s0",
+  "transcript": [
+    {
+      "role": "user",
+      "text": "how u doing"
+    },
+    {
+      "role": "agent",
+      "text": "I'm doing well, thanks! To help you find the right wireless earbuds, could you tell me what you'll mainly use them for? Commuting, workouts, calls, or something else?"
+    },
+    {
+      "role": "user",
+      "text": "game type shi bro"
+    },
+    {
+      "role": "agent",
+      "text": "Got it, you're looking for earbuds mainly for gaming. To narrow it down, do you have a preferred budget range or any must-have features like low latency or strong bass?"
+    },
+    {
+      "role": "user",
+      "text": "prolly 400"
+    },
+    {
+      "role": "agent",
+      "text": "Thanks for sharing your budget of around $400 for gaming earbuds. Do you have a preferred device you'll use them with, like iOS or Android? Also, is low latency or sound quality more important for your gaming experience?"
+    },
+    {
+      "role": "user",
+      "text": "nah i mean 400 at most, like 300 might be proper"
+    },
+    {
+      "role": "agent",
+      "text": "Thanks for clarifying your budget is around $300 to $400 for gaming earbuds. Do you have a preferred device like iOS or Android? Also, is low latency or sound quality your top priority for gaming?"
+    },
+    {
+      "role": "user",
+      "text": "im android person"
+    },
+    {
+      "role": "agent",
+      "text": "Since you're an Android user focused on gaming with a budget around $300, is low latency your top priority, or do you want a balance of sound quality and comfort? This will help me recommend the best earbuds for you."
+    },
+    {
+      "role": "user",
+      "text": "i need to hear the enemies footstep u know saying"
+    },
+    {
+      "role": "agent",
+      "text": "To catch enemy footsteps clearly in gaming on Android, earbuds with precise sound and low latency help. Within your $300-$400 budget, do you want premium noise cancellation too, or focus mainly on sound detail and latency? This will guide me to the best pick."
+    },
+    {
+      "role": "user",
+      "text": "details"
+    },
+    {
+      "role": "agent",
+      "text": "For clear enemy footsteps and low latency on Android within $300-$400, I recommend the WaveBuds QuietMax at $199. They offer strong noise cancellation and premium sound quality, ideal for gaming focus. Would you like details on their latency or fit?"
+    },
+    {
+      "role": "user",
+      "text": "thats like a garbage band i never hear from. never mind..."
+    },
+    {
+      "role": "agent",
+      "text": "I get that brand matters to you. To focus on sound and low latency for gaming on Android within your budget, would you prefer a well-known brand or are you open to lesser-known options with strong reviews? This helps me suggest earbuds you'll trust."
+    }
+  ],
+  "final_state": {
+    "conversation_id": "live_20260408T014145Z",
+    "turn_index": 8,
+    "stage": "recommendation",
+    "slots": {
+      "use_case": "gaming",
+      "budget_tier": "mid",
+      "priority": "sound",
+      "device": "android",
+      "trust_sensitive": false,
+      "conflict_flags": []
+    },
+    "memory": {
+      "use_case": "gaming",
+      "budget": "300-400",
+      "priority": "sound",
+      "device": "android",
+      "intent": "explore",
+      "objections": [
+        "brand_loyalty"
+      ],
+      "trust_concerns": [],
+      "notes": "User expressed dislike for a brand, indicating brand loyalty objection."
+    },
+    "unresolved_objections": [
+      "brand_loyalty"
+    ],
+    "history": [
+      {
+        "role": "user",
+        "text": "how u doing"
+      },
+      {
+        "role": "agent",
+        "text": "I'm doing well, thanks! To help you find the right wireless earbuds, could you tell me what you'll mainly use them for? Commuting, workouts, calls, or something else?"
+      },
+      {
+        "role": "user",
+        "text": "game type shi bro"
+      },
+      {
+        "role": "agent",
+        "text": "Got it, you're looking for earbuds mainly for gaming. To narrow it down, do you have a preferred budget range or any must-have features like low latency or strong bass?"
+      },
+      {
+        "role": "user",
+        "text": "prolly 400"
+      },
+      {
+        "role": "agent",
+        "text": "Thanks for sharing your budget of around $400 for gaming earbuds. Do you have a preferred device you'll use them with, like iOS or Android? Also, is low latency or sound quality more important for your gaming experience?"
+      },
+      {
+        "role": "user",
+        "text": "nah i mean 400 at most, like 300 might be proper"
+      },
+      {
+        "role": "agent",
+        "text": "Thanks for clarifying your budget is around $300 to $400 for gaming earbuds. Do you have a preferred device like iOS or Android? Also, is low latency or sound quality your top priority for gaming?"
+      },
+      {
+        "role": "user",
+        "text": "im android person"
+      },
+      {
+        "role": "agent",
+        "text": "Since you're an Android user focused on gaming with a budget around $300, is low latency your top priority, or do you want a balance of sound quality and comfort? This will help me recommend the best earbuds for you."
+      },
+      {
+        "role": "user",
+        "text": "i need to hear the enemies footstep u know saying"
+      },
+      {
+        "role": "agent",
+        "text": "To catch enemy footsteps clearly in gaming on Android, earbuds with precise sound and low latency help. Within your $300-$400 budget, do you want premium noise cancellation too, or focus mainly on sound detail and latency? This will guide me to the best pick."
+      },
+      {
+        "role": "user",
+        "text": "details"
+      },
+      {
+        "role": "agent",
+        "text": "For clear enemy footsteps and low latency on Android within $300-$400, I recommend the WaveBuds QuietMax at $199. They offer strong noise cancellation and premium sound quality, ideal for gaming focus. Would you like details on their latency or fit?"
+      },
+      {
+        "role": "user",
+        "text": "thats like a garbage band i never hear from. never mind..."
+      },
+      {
+        "role": "agent",
+        "text": "I get that brand matters to you. To focus on sound and low latency for gaming on Android within your budget, would you prefer a well-known brand or are you open to lesser-known options with strong reviews? This helps me suggest earbuds you'll trust."
+      }
+    ],
+    "llm_next_action": {
+      "stage": "recommendation",
+      "assistant_intent": "recommend_alternative_brands",
+      "ask_clarification": false,
+      "reason": "User rejected a brand, so suggest alternative brands that meet sound quality needs."
+    }
+  },
+  "evaluation": {
+    "dimension_scores": {
+      "need_discovery": 3,
+      "recommendation_relevance": 2,
+      "objection_handling": 1,
+      "trust_risk": 2,
+      "tone_control": 3,
+      "factual_correctness": 3,
+      "closing_appropriateness": 2
+    },
+    "outcome_label": "neutral",
+    "failure_tags": [
+      "wrong_objection_handling",
+      "recommendation_mismatch"
+    ],
+    "root_cause_layer": "strategy_selection",
+    "root_cause_kind": "decision",
+    "notes": "Assistant recommended an unknown brand despite user's brand loyalty objection and did not effectively address the objection.",
+    "test_id": "live_20260408T014145Z",
+    "iteration": "v0"
+  },
+  "last_artifacts": {
+    "signals": {
+      "intent": "explore",
+      "constraints": {
+        "budget_tier": "mid",
+        "priority": "sound",
+        "use_case": "gaming",
+        "device": "android"
+      },
+      "objections": [
+        "brand_loyalty"
+      ],
+      "trust_flags": [],
+      "ambiguity": {
+        "is_ambiguous": false,
+        "reason": ""
+      },
+      "conflicts": [],
+      "engagement": "medium",
+      "confidence": {
+        "overall": 0.8,
+        "constraint_confidence": 0.9
+      }
+    },
+    "ingestion": {
+      "memory_patch": {
+        "use_case": "",
+        "budget": "",
+        "priority": "",
+        "device": "",
+        "intent": "",
+        "objections": [
+          "brand_loyalty"
+        ],
+        "trust_concerns": [],
+        "notes": "User expressed dislike for a brand, indicating brand loyalty objection."
+      },
+      "normalized_slots": {
+        "use_case": "gaming",
+        "budget_tier": "mid",
+        "priority": "sound",
+        "device": "android"
+      },
+      "state_patch": {
+        "stage": "recommendation",
+        "slots": {
+          "use_case": "gaming",
+          "budget_tier": "mid",
+          "priority": "sound",
+          "device": "android",
+          "trust_sensitive": false,
+          "conflict_flags": []
+        },
+        "unresolved_objections": [
+          "brand_loyalty"
+        ]
+      },
+      "signals": {
+        "intent": "explore",
+        "objections": [
+          "brand_loyalty"
+        ],
+        "trust_flags": [],
+        "conflicts": [],
+        "ambiguity": {
+          "is_ambiguous": false,
+          "reason": ""
+        },
+        "engagement": "medium",
+        "confidence": {
+          "overall": 0.8,
+          "constraint_confidence": 0.9
+        }
+      },
+      "next_action": {
+        "stage": "recommendation",
+        "assistant_intent": "recommend_alternative_brands",
+        "ask_clarification": false,
+        "reason": "User rejected a brand, so suggest alternative brands that meet sound quality needs."
+      }
+    },
+    "strategy": {
+      "goal": "recommendation",
+      "tactic": "llm_autonomous",
+      "ask_clarification": false,
+      "close_level": "none",
+      "focus_points": [],
+      "avoid": []
+    },
+    "plan": {
+      "questions": [],
+      "recommendations": [],
+      "supporting_points": [],
+      "trust_block": [],
+      "cta": ""
+    },
+    "response": "I get that brand matters to you. To focus on sound and low latency for gaming on Android within your budget, would you prefer a well-known brand or are you open to lesser-known options with strong reviews? This helps me suggest earbuds you'll trust."
+  }
+}

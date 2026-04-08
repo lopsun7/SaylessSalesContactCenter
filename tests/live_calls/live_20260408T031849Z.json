@@ -1,0 +1,201 @@
+{
+  "session_id": "live_20260408T031849Z",
+  "timestamp_utc": "2026-04-08T03:19:36.965117+00:00",
+  "mode": "llm",
+  "ingestion_mode": "llm",
+  "policy_version": "v0",
+  "script_version": "s0",
+  "transcript": [
+    {
+      "role": "user",
+      "text": "hi"
+    },
+    {
+      "role": "agent",
+      "text": "Hi! To help you find the best wireless earbuds, could you tell me what you'll mainly use them for? Commuting, workouts, calls, or something else?"
+    },
+    {
+      "role": "user",
+      "text": "gaming under 100 dollar"
+    },
+    {
+      "role": "agent",
+      "text": "For gaming under $100, the WaveBuds Basic at $89 is a solid budget choice. It offers good mic quality and long battery life, though it's mainly designed for casual use. Do you have a preferred device or any must-have features like low latency or noise cancellation?"
+    },
+    {
+      "role": "user",
+      "text": "too expensive"
+    },
+    {
+      "role": "agent",
+      "text": "Since you want gaming earbuds under $100, would you prioritize features like low latency or just basic wireless earbuds that work well for casual gaming? This can help me find the best fit within your budget."
+    }
+  ],
+  "final_state": {
+    "conversation_id": "live_20260408T031849Z",
+    "turn_index": 3,
+    "stage": "discovery",
+    "slots": {
+      "use_case": "gaming",
+      "budget_tier": "budget",
+      "priority": "unknown",
+      "device": "unknown",
+      "trust_sensitive": false,
+      "conflict_flags": []
+    },
+    "memory": {
+      "use_case": "gaming",
+      "budget": "under 100 dollar",
+      "priority": "",
+      "device": "",
+      "intent": "explore",
+      "objections": [
+        "too expensive"
+      ],
+      "trust_concerns": [],
+      "notes": "User finds the current option too expensive, indicating budget sensitivity."
+    },
+    "unresolved_objections": [
+      "too expensive"
+    ],
+    "history": [
+      {
+        "role": "user",
+        "text": "hi"
+      },
+      {
+        "role": "agent",
+        "text": "Hi! To help you find the best wireless earbuds, could you tell me what you'll mainly use them for? Commuting, workouts, calls, or something else?"
+      },
+      {
+        "role": "user",
+        "text": "gaming under 100 dollar"
+      },
+      {
+        "role": "agent",
+        "text": "For gaming under $100, the WaveBuds Basic at $89 is a solid budget choice. It offers good mic quality and long battery life, though it's mainly designed for casual use. Do you have a preferred device or any must-have features like low latency or noise cancellation?"
+      },
+      {
+        "role": "user",
+        "text": "too expensive"
+      },
+      {
+        "role": "agent",
+        "text": "Since you want gaming earbuds under $100, would you prioritize features like low latency or just basic wireless earbuds that work well for casual gaming? This can help me find the best fit within your budget."
+      }
+    ],
+    "llm_next_action": {
+      "stage": "discovery",
+      "assistant_intent": "explore",
+      "ask_clarification": true,
+      "reason": "Clarify user's exact budget constraints and preferences to find more affordable options."
+    }
+  },
+  "evaluation": {
+    "dimension_scores": {
+      "need_discovery": 3,
+      "recommendation_relevance": 3,
+      "objection_handling": 1,
+      "trust_risk": 0,
+      "tone_control": 3,
+      "factual_correctness": 4,
+      "closing_appropriateness": 2
+    },
+    "outcome_label": "neutral",
+    "failure_tags": [
+      "wrong_objection_handling"
+    ],
+    "root_cause_layer": "strategy_selection",
+    "root_cause_kind": "decision",
+    "notes": "Agent failed to directly address the user's price objection, instead asking about feature priorities without offering a cheaper alternative.",
+    "test_id": "live_20260408T031849Z",
+    "iteration": "v0"
+  },
+  "last_artifacts": {
+    "signals": {
+      "intent": "explore",
+      "constraints": {
+        "budget_tier": "budget",
+        "priority": "unknown",
+        "use_case": "gaming",
+        "device": "unknown"
+      },
+      "objections": [
+        "price"
+      ],
+      "trust_flags": [],
+      "ambiguity": {
+        "is_ambiguous": false,
+        "reason": ""
+      },
+      "conflicts": [
+        "price_vs_quality"
+      ],
+      "engagement": "medium",
+      "confidence": {
+        "overall": 0.8,
+        "constraint_confidence": 0.9
+      }
+    },
+    "ingestion": {
+      "memory_patch": {
+        "use_case": "",
+        "budget": "",
+        "priority": "",
+        "device": "",
+        "intent": "",
+        "objections": [
+          "too expensive"
+        ],
+        "trust_concerns": [],
+        "notes": "User finds the current option too expensive, indicating budget sensitivity."
+      },
+      "normalized_slots": {
+        "use_case": "gaming",
+        "budget_tier": "budget",
+        "priority": "unknown",
+        "device": "unknown"
+      },
+      "state_patch": {
+        "stage": "discovery",
+        "slots": {
+          "use_case": "gaming",
+          "budget_tier": "budget",
+          "priority": "unknown",
+          "device": "unknown",
+          "trust_sensitive": false,
+          "conflict_flags": []
+        },
+        "unresolved_objections": [
+          "too expensive"
+        ]
+      },
+      "signals": {
+        "intent": "explore",
+        "objections": [
+          "price"
+        ],
+        "trust_flags": [],
+        "conflicts": [
+          "price_vs_quality"
+        ],
+        "ambiguity": {
+          "is_ambiguous": false,
+          "reason": ""
+        },
+        "engagement": "medium",
+        "confidence": {
+          "overall": 0.8,
+          "constraint_confidence": 0.9
+        }
+      },
+      "next_action": {
+        "stage": "discovery",
+        "assistant_intent": "explore",
+        "ask_clarification": true,
+        "reason": "Clarify user's exact budget constraints and preferences to find more affordable options."
+      }
+    },
+    "response": "Since you want gaming earbuds under $100, would you prioritize features like low latency or just basic wireless earbuds that work well for casual gaming? This can help me find the best fit within your budget."
+  }
+}
