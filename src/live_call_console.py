@@ -529,16 +529,6 @@ def apply_self_improvement(
     policy_signals: Dict[str, Any] = {}
     script_signals: Dict[str, Any] = {}
     candidate_optimizer_errors: List[str] = []
-    llm_gate_errors: List[str] = []
-    llm_gate: Dict[str, Any] = {
-        "apply_candidate": False,
-        "apply_policy": False,
-        "apply_script_pack": False,
-        "confidence": 0.0,
-        "reasons": [],
-        "risk_flags": [],
-        "notes": "",
-    }
 
     if should_attempt_update:
         for cycle in range(max(1, int(args.self_improve_cycles))):
@@ -624,19 +614,6 @@ def apply_self_improvement(
             updated_scripts = next_scripts
 
     has_candidate_changes = bool(policy_changes or script_changes)
-    if should_attempt_update and has_candidate_changes and not candidate_optimizer_errors:
-        try:
-            llm_gate = llm_client.judge_candidate_updates(
-                live_evaluation=session_payload["evaluation"],
-                current_policy=policy,
-                current_script_pack=script_pack,
-                candidate_policy=updated_policy,
-                candidate_script_pack=updated_scripts,
-                policy_changes=policy_changes,
-                script_changes=script_changes,
-            )
-        except Exception as exc:
-            llm_gate_errors.append(str(exc))
 
     gate_reasons: List[str] = []
     if not should_attempt_update:
@@ -645,38 +622,17 @@ def apply_self_improvement(
         gate_reasons.append("no policy/script changes were generated")
     if candidate_optimizer_errors:
         gate_reasons.append("llm candidate optimization failed")
-    if llm_gate_errors:
-        gate_reasons.append("llm gate judgment failed")
-
-    gate_apply_candidate = bool(llm_gate.get("apply_candidate"))
-    gate_apply_policy = bool(llm_gate.get("apply_policy"))
-    gate_apply_script_pack = bool(llm_gate.get("apply_script_pack"))
-    if should_attempt_update and has_candidate_changes and not llm_gate_errors and not gate_apply_candidate:
-        gate_reasons.append("llm gate rejected candidate")
-        model_reasons = llm_gate.get("reasons", [])
-        if isinstance(model_reasons, list):
-            for reason in model_reasons[:3]:
-                if isinstance(reason, str) and reason.strip():
-                    gate_reasons.append(f"llm_gate: {reason.strip()}")
-    if should_attempt_update and has_candidate_changes and gate_apply_candidate and not (gate_apply_policy or gate_apply_script_pack):
-        gate_reasons.append("llm gate accepted candidate but selected no component to apply")
 
     apply_policy_update = (
         should_attempt_update
         and has_candidate_changes
         and not candidate_optimizer_errors
-        and not llm_gate_errors
-        and gate_apply_candidate
-        and gate_apply_policy
         and bool(policy_changes)
     )
     apply_script_update = (
         should_attempt_update
         and has_candidate_changes
         and not candidate_optimizer_errors
-        and not llm_gate_errors
-        and gate_apply_candidate
-        and gate_apply_script_pack
         and bool(script_changes)
     )
 
@@ -715,10 +671,8 @@ def apply_self_improvement(
         "policy_signals": dict(policy_signals),
         "script_signals": dict(script_signals),
         "optimizer_errors": candidate_optimizer_errors,
-        "llm_gate": llm_gate,
-        "llm_gate_errors": llm_gate_errors,
         "validation": {
-            "evaluation_mode": "llm_gate_only",
+            "evaluation_mode": "no_gate_auto_apply",
             "learning_suite_skipped": True,
             "gate_passed": gate_passed,
             "gate_reasons": gate_reasons,
@@ -739,7 +693,6 @@ def apply_self_improvement(
         "from": improve_payload["from"],
         "accepted_to": improve_payload["accepted_to"],
         "accepted_candidate": improve_payload["accepted_candidate"],
-        "llm_gate": improve_payload["llm_gate"],
         "gate_reasons": improve_payload["validation"]["gate_reasons"],
         "evaluation_mode": improve_payload["validation"]["evaluation_mode"],
         "improvement_file": str(improve_file),
@@ -754,11 +707,6 @@ def apply_self_improvement(
     _print_change_list("- policy changes", policy_changes)
     _print_change_list("- script changes", script_changes)
     print(f"- evaluation_mode: {improve_payload['validation']['evaluation_mode']}")
-    print(
-        f"- llm_gate: apply_candidate={gate_apply_candidate}, "
-        f"apply_policy={gate_apply_policy}, apply_script_pack={gate_apply_script_pack}, "
-        f"confidence={llm_gate.get('confidence', 0.0)}"
-    )
     print(f"- gate_passed: {gate_passed}")
     if gate_reasons:
         print(f"- gate_reasons: {gate_reasons}")

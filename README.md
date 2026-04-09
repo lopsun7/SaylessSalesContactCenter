@@ -79,8 +79,7 @@ Notes:
 - Model can be changed with `OPENAI_MODEL` (default currently `gpt-4.1-mini`).
 - In self-improve mode, a live negative/failing call now runs a gated loop:
   - use LLM to propose policy/script candidate updates,
-  - use LLM gate judgment to accept/reject candidate updates,
-  - apply only approved components (policy/script),
+  - auto-apply generated candidate updates when generation succeeds,
   - append an auditable trace event to `tests/live_calls/improvement_trace.jsonl`.
 
 Direct run examples:
