@@ -6,9 +6,10 @@ from __future__ import annotations
 import json
 import os
 import re
+import threading
 import urllib.error
 import urllib.request
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Tuple
 
 try:
     from pydantic import BaseModel, Field, ValidationError
@@ -184,6 +185,59 @@ class OpenAIChatClient:
             raise RuntimeError(f"OpenAI API error {exc.code}: {body}") from exc
         except urllib.error.URLError as exc:
             raise RuntimeError(f"OpenAI network error: {exc}") from exc
+
+    def _stream_chat_completions(
+        self,
+        payload: Dict[str, Any],
+        on_text_chunk: Callable[[str], None],
+        stop_event: threading.Event | None = None,
+    ) -> Tuple[str, bool]:
+        req = urllib.request.Request(
+            url=f"{self.base_url}/chat/completions",
+            method="POST",
+            headers={
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+            },
+            data=json.dumps(payload).encode("utf-8"),
+        )
+        full_text = ""
+        interrupted = False
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout_s) as resp:
+                for raw_line in resp:
+                    if stop_event is not None and stop_event.is_set():
+                        interrupted = True
+                        break
+
+                    line = raw_line.decode("utf-8", errors="ignore").strip()
+                    if not line or not line.startswith("data: "):
+                        continue
+                    data_str = line[6:].strip()
+                    if data_str == "[DONE]":
+                        break
+
+                    try:
+                        event = json.loads(data_str)
+                    except json.JSONDecodeError:
+                        continue
+
+                    choices = event.get("choices", [])
+                    if not choices:
+                        continue
+                    delta = choices[0].get("delta", {})
+                    token = delta.get("content", "")
+                    if not isinstance(token, str) or not token:
+                        continue
+                    full_text += token
+                    on_text_chunk(token)
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace") if hasattr(exc, "read") else ""
+            raise RuntimeError(f"OpenAI API error {exc.code}: {body}") from exc
+        except urllib.error.URLError as exc:
+            raise RuntimeError(f"OpenAI network error: {exc}") from exc
+
+        return full_text.strip(), interrupted
 
     def _extract_text(self, data: Dict[str, Any]) -> str:
         choices: List[Dict[str, Any]] = data.get("choices", [])
@@ -753,7 +807,8 @@ class OpenAIChatClient:
             "Drive the conversation autonomously: ask only the most useful next question when details are missing, "
             "or make a concrete recommendation when confident. "
             "Do not invent product facts beyond provided context. "
-            "Keep a practical, non-pushy tone and stay under the soft word limit."
+            "Keep a practical, non-pushy tone and stay under the soft word limit. "
+            "Respond in English only."
         )
 
         payload_context = {
@@ -790,6 +845,61 @@ class OpenAIChatClient:
         data = self._post_json(f"{self.base_url}/chat/completions", payload)
         return self._extract_text(data)
 
+    def stream_generate_response_autonomous(
+        self,
+        *,
+        state: Dict[str, Any],
+        user_text: str,
+        policy: Dict[str, Any],
+        script_pack: Dict[str, Any],
+        catalog: Dict[str, Any],
+        on_text_chunk: Callable[[str], None],
+        stop_event: threading.Event | None = None,
+    ) -> Tuple[str, bool]:
+        """Generate one autonomous reply via SSE stream."""
+        system_prompt = (
+            "You are a concise ecommerce sales assistant for wireless earbuds. "
+            "Drive the conversation autonomously: ask only the most useful next question when details are missing, "
+            "or make a concrete recommendation when confident. "
+            "Do not invent product facts beyond provided context. "
+            "Keep a practical, non-pushy tone and stay under the soft word limit. "
+            "Respond in English only."
+        )
+
+        payload_context = {
+            "user_text": user_text,
+            "state": {
+                "stage": state.get("stage"),
+                "slots": state.get("slots"),
+                "memory": state.get("memory", {}),
+                "unresolved_objections": state.get("unresolved_objections", []),
+                "history_tail": state.get("history", [])[-8:],
+            },
+            "policy_constraints": {
+                "max_words_soft": policy.get("rules", {}).get("response_limits", {}).get("max_words_soft", 80),
+            },
+            "script_style": script_pack.get("style", {}),
+            "catalog": catalog,
+        }
+
+        user_prompt = (
+            "Generate exactly one natural agent reply for the next turn.\n"
+            "Context JSON:\n"
+            f"{json.dumps(payload_context, ensure_ascii=True)}"
+        )
+
+        payload = {
+            "model": self.model,
+            "temperature": self.temperature,
+            "max_tokens": self.max_output_tokens,
+            "stream": True,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+        }
+        return self._stream_chat_completions(payload, on_text_chunk=on_text_chunk, stop_event=stop_event)
+
     def generate_response(
         self,
         *,
@@ -807,7 +917,8 @@ class OpenAIChatClient:
             "Follow the provided strategy and content plan strictly. "
             "Do not invent product facts beyond provided context. "
             "Address objections first when present. "
-            "If plan has clarification questions, ask them clearly and briefly."
+            "If plan has clarification questions, ask them clearly and briefly. "
+            "Respond in English only."
         )
 
         payload_context = {
@@ -849,3 +960,65 @@ class OpenAIChatClient:
 
         data = self._post_json(f"{self.base_url}/chat/completions", payload)
         return self._extract_text(data)
+
+    def stream_generate_response(
+        self,
+        *,
+        state: Dict[str, Any],
+        strategy: Dict[str, Any],
+        plan: Dict[str, Any],
+        policy: Dict[str, Any],
+        script_pack: Dict[str, Any],
+        user_text: str,
+        catalog: Dict[str, Any],
+        on_text_chunk: Callable[[str], None],
+        stop_event: threading.Event | None = None,
+    ) -> Tuple[str, bool]:
+        """Generate response via SSE stream. Returns (full_text, interrupted)."""
+        system_prompt = (
+            "You are a concise ecommerce sales assistant for wireless earbuds. "
+            "Follow the provided strategy and content plan strictly. "
+            "Do not invent product facts beyond provided context. "
+            "Address objections first when present. "
+            "If plan has clarification questions, ask them clearly and briefly. "
+            "Respond in English only."
+        )
+
+        payload_context = {
+            "user_text": user_text,
+            "state": {
+                "stage": state.get("stage"),
+                "slots": state.get("slots"),
+                "memory": state.get("memory", {}),
+                "unresolved_objections": state.get("unresolved_objections", []),
+            },
+            "strategy": strategy,
+            "plan": plan,
+            "policy_constraints": {
+                "max_words_soft": policy.get("rules", {}).get("response_limits", {}).get("max_words_soft", 80),
+            },
+            "script_style": script_pack.get("style", {}),
+            "catalog_context": {
+                "return_policy_days": catalog.get("return_policy_days"),
+                "warranty_months": catalog.get("warranty_months"),
+            },
+        }
+
+        user_prompt = (
+            "Generate exactly one natural agent reply for the next turn. "
+            "Keep it practical, non-pushy, and under the soft word limit. "
+            "Context JSON:\n"
+            f"{json.dumps(payload_context, ensure_ascii=True)}"
+        )
+
+        payload = {
+            "model": self.model,
+            "temperature": self.temperature,
+            "max_tokens": self.max_output_tokens,
+            "stream": True,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+        }
+        return self._stream_chat_completions(payload, on_text_chunk=on_text_chunk, stop_event=stop_event)
