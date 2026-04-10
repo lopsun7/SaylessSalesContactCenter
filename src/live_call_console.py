@@ -198,8 +198,8 @@ class BargeInMonitor:
                 return
 
 
-class AutoListenWorker:
-    """Background mic->STT worker for auto-listen mode."""
+class DuplexASRWorker:
+    """Always-on VAD segmentation + STT for duplex voice interaction."""
 
     def __init__(
         self,
@@ -207,32 +207,78 @@ class AutoListenWorker:
         voice_io: VoiceIO,
         stt_client: OpenAITranscriptionClient,
         args: argparse.Namespace,
-        pause_event: threading.Event,
+        agent_speaking_event: threading.Event,
     ) -> None:
         self.voice_io = voice_io
         self.stt_client = stt_client
         self.args = args
-        self.pause_event = pause_event
+        self.agent_speaking_event = agent_speaking_event
         self._stop_event = threading.Event()
-        self._text_queue: queue.Queue[str] = queue.Queue()
+        self._user_text_queue: queue.Queue[str] = queue.Queue()
+        self._barge_text_queue: queue.Queue[str] = queue.Queue()
+        self._barge_signal_queue: queue.Queue[int] = queue.Queue()
         self._error_queue: queue.Queue[str] = queue.Queue()
-        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._pcm_queue: queue.Queue[bytes | None] = queue.Queue(maxsize=16)
+        self._capture_thread = threading.Thread(target=self._capture_loop, daemon=True)
+        self._stt_thread = threading.Thread(target=self._stt_loop, daemon=True)
+
+        self._pre_roll_frames = max(1, int(max(0, int(args.voice_preroll_ms)) / voice_io.frame_ms))
+        self._min_speech_frames = max(1, int(max(80, int(args.voice_min_speech_ms * 0.75)) / voice_io.frame_ms))
+        self._silence_frames = max(1, int(max(260, int(args.voice_silence_ms * 0.6)) / voice_io.frame_ms))
+        self._max_segment_frames = max(
+            self._min_speech_frames + self._silence_frames + 1,
+            int(max(1.0, min(float(args.voice_max_seconds), 4.0)) * 1000 / voice_io.frame_ms),
+        )
+        self._frame_timeout_s = max(0.02, voice_io.frame_ms / 1000.0 * 2.0)
 
     def start(self) -> None:
-        self._thread.start()
+        self._capture_thread.start()
+        self._stt_thread.start()
 
     def stop(self) -> None:
         self._stop_event.set()
-        self._thread.join(timeout=1.0)
+        try:
+            self._pcm_queue.put_nowait(None)
+        except queue.Full:
+            pass
+        self._capture_thread.join(timeout=1.2)
+        self._stt_thread.join(timeout=1.2)
 
     def is_alive(self) -> bool:
-        return self._thread.is_alive()
+        return self._capture_thread.is_alive() and self._stt_thread.is_alive()
 
-    def poll_text(self) -> str:
+    def poll_user_text(self) -> str:
         try:
-            return self._text_queue.get_nowait()
+            return self._user_text_queue.get_nowait()
         except queue.Empty:
             return ""
+
+    def poll_barge_text(self) -> str:
+        try:
+            return self._barge_text_queue.get_nowait()
+        except queue.Empty:
+            return ""
+
+    def clear_barge_text(self) -> None:
+        while True:
+            try:
+                self._barge_text_queue.get_nowait()
+            except queue.Empty:
+                return
+
+    def clear_barge_signal(self) -> None:
+        while True:
+            try:
+                self._barge_signal_queue.get_nowait()
+            except queue.Empty:
+                return
+
+    def poll_barge_signal(self) -> bool:
+        try:
+            self._barge_signal_queue.get_nowait()
+            return True
+        except queue.Empty:
+            return False
 
     def poll_error(self) -> str:
         try:
@@ -240,30 +286,94 @@ class AutoListenWorker:
         except queue.Empty:
             return ""
 
-    def _run(self) -> None:
-        while not self._stop_event.is_set():
-            if self.pause_event.is_set():
-                time.sleep(0.02)
-                continue
+    def _capture_loop(self) -> None:
+        pre_roll: List[bytes] = []
+        speaking = False
+        speech_frames = 0
+        silence_frames = 0
+        current: List[bytes] = []
 
+        while not self._stop_event.is_set():
             try:
-                pcm = self.voice_io.record_utterance(
-                    max_seconds=self.args.voice_max_seconds,
-                    start_timeout_s=self.args.voice_start_timeout_s,
-                    min_speech_ms=self.args.voice_min_speech_ms,
-                    silence_ms=self.args.voice_silence_ms,
-                    pre_roll_ms=self.args.voice_preroll_ms,
-                    abort_event=self.pause_event,
-                )
+                frame = self.voice_io.read_mic_frame(timeout_s=self._frame_timeout_s)
             except Exception as exc:
-                self._error_queue.put(f"record_utterance_failed: {exc}")
+                self._error_queue.put(f"duplex_capture_failed: {exc}")
                 time.sleep(0.05)
                 continue
-            if self._stop_event.is_set() or self.pause_event.is_set():
-                continue
-            if not pcm:
+            if not frame:
                 continue
 
+            pre_roll.append(frame)
+            if len(pre_roll) > self._pre_roll_frames:
+                pre_roll = pre_roll[-self._pre_roll_frames:]
+
+            speech = self.voice_io.is_speech_frame(frame)
+            if not speaking:
+                if not speech:
+                    continue
+                speaking = True
+                if self.args.enable_barge_in and self.agent_speaking_event.is_set():
+                    try:
+                        self._barge_signal_queue.put_nowait(1)
+                    except queue.Full:
+                        pass
+                current = list(pre_roll)
+                speech_frames = 1
+                silence_frames = 0
+                continue
+
+            current.append(frame)
+            if speech:
+                speech_frames += 1
+                silence_frames = 0
+            else:
+                silence_frames += 1
+
+            should_flush = (
+                (speech_frames >= self._min_speech_frames and silence_frames >= self._silence_frames)
+                or len(current) >= self._max_segment_frames
+            )
+            if not should_flush:
+                continue
+
+            pcm = b"".join(current)
+            speaking = False
+            speech_frames = 0
+            silence_frames = 0
+            current = []
+            if not pcm:
+                continue
+            try:
+                self._pcm_queue.put(pcm, timeout=0.2)
+            except queue.Full:
+                # Drop oldest pending segment to keep latency bounded.
+                try:
+                    self._pcm_queue.get_nowait()
+                except queue.Empty:
+                    pass
+                try:
+                    self._pcm_queue.put_nowait(pcm)
+                except queue.Full:
+                    pass
+
+        if current:
+            try:
+                self._pcm_queue.put_nowait(b"".join(current))
+            except queue.Full:
+                pass
+        try:
+            self._pcm_queue.put_nowait(None)
+        except queue.Full:
+            pass
+
+    def _stt_loop(self) -> None:
+        while not self._stop_event.is_set():
+            try:
+                pcm = self._pcm_queue.get(timeout=0.2)
+            except queue.Empty:
+                continue
+            if pcm is None:
+                return
             try:
                 text = self.stt_client.transcribe_pcm16le(
                     pcm,
@@ -273,9 +383,11 @@ class AutoListenWorker:
             except Exception as exc:
                 self._error_queue.put(str(exc))
                 continue
-
             if text:
-                self._text_queue.put(text)
+                if self.args.enable_barge_in and self.agent_speaking_event.is_set():
+                    self._barge_text_queue.put(text)
+                else:
+                    self._user_text_queue.put(text)
 
 
 def _poll_stdin_line(timeout_s: float = 0.0) -> str:
@@ -591,42 +703,6 @@ def run_live_session(args: argparse.Namespace) -> Tuple[Dict[str, Any], Dict[str
     last_user = ""
     last_ingestion: Dict[str, Any] = {}
 
-    def _transcribe_pcm_with_retry(pcm: bytes) -> str:
-        if not pcm or stt_client is None:
-            return ""
-        try:
-            text = stt_client.transcribe_pcm16le(
-                pcm,
-                sample_rate=args.voice_sample_rate,
-                language=args.stt_language,
-            ).strip()
-            if text:
-                return text
-        except Exception as exc:
-            print(f"\n[warn] barge-in STT failed (lang={args.stt_language}): {exc}")
-        # Fallback without language lock for edge cases where short utterance is dropped.
-        try:
-            return stt_client.transcribe_pcm16le(
-                pcm,
-                sample_rate=args.voice_sample_rate,
-                language=None,
-            ).strip()
-        except Exception:
-            return ""
-
-    def _capture_followup_after_barge() -> str:
-        if voice_io is None:
-            return ""
-        # Small follow-up window to catch the tail of user speech after interruption.
-        followup_pcm = voice_io.record_utterance(
-            max_seconds=min(2.0, max(0.8, float(args.barge_max_seconds) / 3.0)),
-            start_timeout_s=0.25,
-            min_speech_ms=max(120, int(args.voice_min_speech_ms * 0.8)),
-            silence_ms=max(350, int(args.voice_silence_ms * 0.65)),
-            pre_roll_ms=max(int(args.barge_preroll_ms), int(args.voice_preroll_ms)),
-        )
-        return _transcribe_pcm_with_retry(followup_pcm)
-
     llm_client = OpenAIChatClient(
         model=args.model,
         temperature=args.temperature,
@@ -665,15 +741,12 @@ def run_live_session(args: argparse.Namespace) -> Tuple[Dict[str, Any], Dict[str
 
     print("Interactive call started.")
     if args.io_mode == "voice":
-        if args.voice_auto_listen:
-            print("Voice mode enabled. Auto-listen is on (no Enter needed).")
-            print("Type '/end' + Enter to stop, '/state' + Enter to inspect state.")
-        else:
-            print("Voice mode enabled. Press Enter to record each turn, type '/end' to finish.")
+        print("Voice mode enabled (full duplex ASR).")
+        print("Speak naturally; interruption is speech-driven in real time.")
+        print("Type '/end' + Enter to stop, '/state' + Enter to inspect state.")
         print("Microphone stream is always-on in background for faster barge-in capture.")
         print("English-only mode enabled (STT language locked to English).")
-        if args.enable_barge_in and args.streaming:
-            print("Speech barge-in enabled during playback (headphones recommended).")
+        print("Speech barge-in enabled during playback (headphones recommended).")
     else:
         print("Type your message. Use '/end' to finish, '/state' to inspect state.")
         if args.enable_barge_in and args.streaming:
@@ -687,27 +760,28 @@ def run_live_session(args: argparse.Namespace) -> Tuple[Dict[str, Any], Dict[str
             if tts_client is not None and voice_io is not None:
                 try:
                     pcm = tts_client.synthesize_to_pcm(opening)
-                    voice_io.play_pcm_with_barge_in(pcm, enable_barge_in=False)
+                    opening_queue: queue.Queue[bytes | None] = queue.Queue()
+                    opening_queue.put(pcm)
+                    opening_queue.put(None)
+                    voice_io.play_pcm_queue(opening_queue, stop_event=None)
                 except Exception as exc:
                     print(f"[warn] opening greeting playback failed: {exc}")
 
     agent_speaking_event = threading.Event()
 
-    def _start_auto_listen_worker() -> AutoListenWorker:
+    def _start_duplex_worker() -> DuplexASRWorker:
         if voice_io is None or stt_client is None:
             raise RuntimeError("voice mode not initialized correctly.")
-        worker = AutoListenWorker(
+        worker = DuplexASRWorker(
             voice_io=voice_io,
             stt_client=stt_client,
             args=args,
-            pause_event=agent_speaking_event,
+            agent_speaking_event=agent_speaking_event,
         )
         worker.start()
         return worker
 
-    auto_listen_worker = None
-    if args.io_mode == "voice" and args.voice_auto_listen:
-        auto_listen_worker = _start_auto_listen_worker()
+    duplex_worker = _start_duplex_worker() if args.io_mode == "voice" else None
 
     pending_user_text = ""
     interruption_events: List[Dict[str, Any]] = []
@@ -724,86 +798,43 @@ def run_live_session(args: argparse.Namespace) -> Tuple[Dict[str, Any], Dict[str
             last_listening_hint_at = 0.0
         else:
             if args.io_mode == "voice":
-                if args.voice_auto_listen:
-                    command = _poll_stdin_line(timeout_s=0.0)
-                    if command.lower() in {"/end", "/quit", "/exit"}:
-                        break
-                    if command.lower() == "/state":
-                        print(json.dumps(state, indent=2))
-                        continue
-                    if command.startswith("/"):
-                        print(f"[info] unknown command: {command}")
-                        continue
-                    if command:
-                        user_text = command
-                        print(f"You(typed)> {user_text}")
-                        last_listening_hint_at = 0.0
-                    else:
-                        if auto_listen_worker is None:
-                            raise RuntimeError("auto-listen worker unavailable.")
-                        if not auto_listen_worker.is_alive():
-                            print("[warn] auto-listen worker stopped unexpectedly; restarting.")
-                            auto_listen_worker = _start_auto_listen_worker()
-                            time.sleep(0.05)
-                            continue
-                        user_text = auto_listen_worker.poll_text().strip()
-                        if not user_text:
-                            worker_err = auto_listen_worker.poll_error()
-                            if worker_err:
-                                if args.fallback_on_llm_error:
-                                    print(f"[warn] STT failed in auto-listen worker: {worker_err}")
-                                else:
-                                    raise RuntimeError(f"STT failed in auto-listen worker: {worker_err}")
-                            now = time.monotonic()
-                            if now - last_listening_hint_at >= 4.0:
-                                print("[listening] Speak now.")
-                                last_listening_hint_at = now
-                            time.sleep(0.02)
-                            continue
-                        if not user_text:
-                            continue
-                        print(f"You(voice)> {user_text}")
-                        last_listening_hint_at = 0.0
+                command = _poll_stdin_line(timeout_s=0.0)
+                if command.lower() in {"/end", "/quit", "/exit"}:
+                    break
+                if command.lower() == "/state":
+                    print(json.dumps(state, indent=2))
+                    continue
+                if command.startswith("/"):
+                    print(f"[info] unknown command: {command}")
+                    continue
+                if command:
+                    user_text = command
+                    print(f"You(typed)> {user_text}")
+                    last_listening_hint_at = 0.0
                 else:
-                    command = input("Voice> Press Enter to talk (/end to stop, /state to inspect): ").strip()
-                    if command.lower() in {"/end", "/quit", "/exit"}:
-                        break
-                    if command.lower() == "/state":
-                        print(json.dumps(state, indent=2))
+                    if duplex_worker is None:
+                        raise RuntimeError("duplex worker unavailable.")
+                    if not duplex_worker.is_alive():
+                        print("[warn] duplex ASR worker stopped unexpectedly; restarting.")
+                        duplex_worker = _start_duplex_worker()
+                        time.sleep(0.05)
                         continue
-                    # Allow typed text override in voice mode for debugging STT issues.
-                    if command and not command.startswith("/"):
-                        user_text = command
-                        print(f"You(typed)> {user_text}")
-                    else:
-                        if voice_io is None or stt_client is None:
-                            raise RuntimeError("voice mode not initialized correctly.")
-                        pcm = voice_io.record_utterance(
-                            max_seconds=args.voice_max_seconds,
-                            start_timeout_s=args.voice_start_timeout_s,
-                            min_speech_ms=args.voice_min_speech_ms,
-                            silence_ms=args.voice_silence_ms,
-                            pre_roll_ms=args.voice_preroll_ms,
-                        )
-                        if not pcm:
-                            print("[info] no speech detected; retry.")
-                            continue
-                        try:
-                            user_text = stt_client.transcribe_pcm16le(
-                                pcm,
-                                sample_rate=args.voice_sample_rate,
-                                language=args.stt_language,
-                            )
-                        except Exception as exc:
+                    user_text = duplex_worker.poll_user_text().strip()
+                    if not user_text:
+                        worker_err = duplex_worker.poll_error()
+                        if worker_err:
                             if args.fallback_on_llm_error:
-                                print(f"[warn] STT failed; retry turn: {exc}")
-                                continue
-                            raise
-                        user_text = user_text.strip()
-                        if not user_text:
-                            print("[info] empty transcription; retry.")
-                            continue
-                        print(f"You(voice)> {user_text}")
+                                print(f"[warn] duplex STT failed: {worker_err}")
+                            else:
+                                raise RuntimeError(f"duplex STT failed: {worker_err}")
+                        now = time.monotonic()
+                        if now - last_listening_hint_at >= 4.0:
+                            print("[listening] Speak now.")
+                            last_listening_hint_at = now
+                        time.sleep(0.02)
+                        continue
+                    print(f"You(voice)> {user_text}")
+                    last_listening_hint_at = 0.0
             else:
                 user_text = input("You> ").strip()
         if not user_text:
@@ -818,7 +849,7 @@ def run_live_session(args: argparse.Namespace) -> Tuple[Dict[str, Any], Dict[str
         state["history"].append({"role": "user", "text": user_text})
         response = ""
         response_printed_live = False
-        assistant_turn_active = bool(args.io_mode == "voice" and args.voice_auto_listen)
+        assistant_turn_active = bool(args.io_mode == "voice")
         if assistant_turn_active:
             agent_speaking_event.set()
         try:
@@ -848,10 +879,16 @@ def run_live_session(args: argparse.Namespace) -> Tuple[Dict[str, Any], Dict[str
                     segment_queue: queue.Queue[str | None] = queue.Queue()
                     pcm_queue: queue.Queue[bytes | None] = queue.Queue()
                     segment_state: Dict[str, str] = {"buffer": ""}
-                    barge_pcm_holder: Dict[str, bytes] = {}
-                    min_tts_segment_chars_first = 14
-                    min_tts_segment_chars_next = 28
+                    tts_stop_event = threading.Event()
+                    barge_stop_event = threading.Event()
+                    barge_message_holder: Dict[str, str] = {}
+                    min_tts_segment_chars_first = int(args.tts_segment_chars_first)
+                    min_tts_segment_chars_next = int(args.tts_segment_chars_next)
                     first_segment_emitted = False
+
+                    if args.enable_barge_in and duplex_worker is not None:
+                        duplex_worker.clear_barge_text()
+                        duplex_worker.clear_barge_signal()
 
                     def _tts_worker() -> None:
                         while True:
@@ -859,7 +896,7 @@ def run_live_session(args: argparse.Namespace) -> Tuple[Dict[str, Any], Dict[str
                             if segment is None:
                                 pcm_queue.put(None)
                                 return
-                            if interrupt_event.is_set():
+                            if interrupt_event.is_set() or tts_stop_event.is_set():
                                 pcm_queue.put(None)
                                 return
                             try:
@@ -867,36 +904,52 @@ def run_live_session(args: argparse.Namespace) -> Tuple[Dict[str, Any], Dict[str
                             except Exception as exc:
                                 print(f"\n[warn] TTS segment failed: {exc}")
                                 continue
+                            if interrupt_event.is_set() or tts_stop_event.is_set():
+                                pcm_queue.put(None)
+                                return
                             pcm_queue.put(pcm)
 
                     def _playback_worker() -> None:
-                        while True:
-                            pcm = pcm_queue.get()
-                            if pcm is None:
-                                return
-                            interrupted_local, barge_pcm = voice_io.play_pcm_with_barge_in(
-                                pcm,
-                                enable_barge_in=args.enable_barge_in,
-                                barge_trigger_ms=args.barge_trigger_ms,
-                                barge_max_seconds=args.barge_max_seconds,
-                                barge_silence_ms=args.barge_silence_ms,
-                                barge_preroll_ms=args.barge_preroll_ms,
-                                barge_ignore_ms=args.barge_ignore_ms,
-                                echo_gate_ratio=args.echo_gate_ratio,
-                            )
-                            if interrupted_local:
-                                if barge_pcm:
-                                    barge_pcm_holder["pcm"] = barge_pcm
+                        voice_io.play_pcm_queue(
+                            pcm_queue,
+                            stop_event=interrupt_event,
+                        )
+
+                    def _barge_monitor() -> None:
+                        if duplex_worker is None:
+                            return
+                        interrupted_local = False
+                        wait_text_until = 0.0
+                        while not barge_stop_event.is_set():
+                            if not interrupted_local and duplex_worker.poll_barge_signal():
                                 interrupt_event.set()
+                                tts_stop_event.set()
+                                interrupted_local = True
+                                wait_text_until = time.monotonic() + 1.6
+                            msg = duplex_worker.poll_barge_text().strip()
+                            if msg:
+                                barge_message_holder["text"] = msg
+                                if not interrupted_local:
+                                    interrupt_event.set()
+                                    tts_stop_event.set()
                                 return
+                            if interrupted_local and time.monotonic() >= wait_text_until:
+                                return
+                            time.sleep(0.01)
 
                     tts_thread = threading.Thread(target=_tts_worker, daemon=True)
                     playback_thread = threading.Thread(target=_playback_worker, daemon=True)
+                    barge_thread = None
                     tts_thread.start()
                     playback_thread.start()
+                    if args.enable_barge_in:
+                        barge_thread = threading.Thread(target=_barge_monitor, daemon=True)
+                        barge_thread.start()
 
                     def _on_chunk(token: str) -> None:
                         nonlocal first_segment_emitted
+                        if interrupt_event.is_set() or tts_stop_event.is_set():
+                            return
                         chunks.append(token)
                         print(token, end="", flush=True)
                         segment_state["buffer"] += token
@@ -930,10 +983,11 @@ def run_live_session(args: argparse.Namespace) -> Tuple[Dict[str, Any], Dict[str
                     )
 
                     if interrupted:
-                        # Fast-exit synthesis/playback threads after barge-in to avoid delaying capture.
+                        # Fast-exit synthesis/playback threads after barge-in.
+                        tts_stop_event.set()
                         segment_queue.put(None)
-                        tts_thread.join(timeout=0.25)
-                        playback_thread.join(timeout=0.25)
+                        tts_thread.join(timeout=2.0)
+                        playback_thread.join(timeout=2.0)
                     else:
                         tail_segments, tail_remaining = _drain_speak_segments(segment_state["buffer"])
                         for seg in tail_segments:
@@ -941,13 +995,18 @@ def run_live_session(args: argparse.Namespace) -> Tuple[Dict[str, Any], Dict[str
                         if tail_remaining.strip():
                             segment_queue.put(tail_remaining.strip())
                         segment_queue.put(None)
-                        tts_thread.join(timeout=max(0.5, args.barge_max_seconds + 2.0))
-                        playback_thread.join(timeout=max(0.5, args.barge_max_seconds + 2.0))
+                        tts_thread.join(timeout=max(0.8, args.barge_max_seconds + 2.5))
+                        playback_thread.join(timeout=max(0.8, args.barge_max_seconds + 2.5))
+                    if barge_thread is not None:
+                        barge_stop_event.set()
+                        barge_thread.join(timeout=0.3)
+                    if args.enable_barge_in and barge_message_holder.get("text"):
+                        interrupted = True
+                    if args.enable_barge_in and interrupt_event.is_set():
+                        interrupted = True
 
                     if interrupted:
-                        barge_message = _transcribe_pcm_with_retry(barge_pcm_holder.get("pcm", b""))
-                        if not barge_message:
-                            barge_message = _capture_followup_after_barge()
+                        barge_message = barge_message_holder.get("text", "").strip()
                 else:
                     monitor = None
                     if args.enable_barge_in:
@@ -1002,6 +1061,13 @@ def run_live_session(args: argparse.Namespace) -> Tuple[Dict[str, Any], Dict[str
                     last_response = marked_response
                     pending_user_text = barge_message
                     continue
+                if interrupted and not barge_message:
+                    marked_response = (response + " [INTERRUPTED]").strip()
+                    state["history"].append({"role": "agent", "text": marked_response})
+                    print("[info] interruption detected but speech not recognized; please repeat.")
+                    last_signals = signals
+                    last_response = marked_response
+                    continue
 
             else:
                 response = llm_client.generate_response_autonomous(
@@ -1014,37 +1080,82 @@ def run_live_session(args: argparse.Namespace) -> Tuple[Dict[str, Any], Dict[str
                 if args.io_mode == "voice" and tts_client is not None and voice_io is not None:
                     try:
                         pcm = tts_client.synthesize_to_pcm(response)
-                        interrupted_local, barge_pcm = voice_io.play_pcm_with_barge_in(
-                            pcm,
-                            enable_barge_in=args.enable_barge_in,
-                            barge_trigger_ms=args.barge_trigger_ms,
-                            barge_max_seconds=args.barge_max_seconds,
-                            barge_silence_ms=args.barge_silence_ms,
-                            barge_preroll_ms=args.barge_preroll_ms,
-                            barge_ignore_ms=args.barge_ignore_ms,
-                            echo_gate_ratio=args.echo_gate_ratio,
+                        interrupt_event = threading.Event()
+                        barge_stop_event = threading.Event()
+                        barge_message_holder: Dict[str, str] = {}
+                        pcm_queue: queue.Queue[bytes | None] = queue.Queue()
+                        pcm_queue.put(pcm)
+                        pcm_queue.put(None)
+
+                        if args.enable_barge_in and duplex_worker is not None:
+                            duplex_worker.clear_barge_text()
+                            duplex_worker.clear_barge_signal()
+
+                        def _barge_monitor() -> None:
+                            if duplex_worker is None:
+                                return
+                            interrupted_local = False
+                            wait_text_until = 0.0
+                            while not barge_stop_event.is_set():
+                                if not interrupted_local and duplex_worker.poll_barge_signal():
+                                    interrupt_event.set()
+                                    interrupted_local = True
+                                    wait_text_until = time.monotonic() + 1.6
+                                msg = duplex_worker.poll_barge_text().strip()
+                                if msg:
+                                    barge_message_holder["text"] = msg
+                                    if not interrupted_local:
+                                        interrupt_event.set()
+                                    return
+                                if interrupted_local and time.monotonic() >= wait_text_until:
+                                    return
+                                time.sleep(0.01)
+
+                        playback_thread = threading.Thread(
+                            target=voice_io.play_pcm_queue,
+                            kwargs={"pcm_queue": pcm_queue, "stop_event": interrupt_event},
+                            daemon=True,
                         )
-                        if interrupted_local:
-                            barge_message = _transcribe_pcm_with_retry(barge_pcm or b"")
-                            if not barge_message:
-                                barge_message = _capture_followup_after_barge()
-                            if barge_message:
-                                interruption_event = {
-                                    "event": "barge_in",
-                                    "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-                                    "session_id": args.session_id,
-                                    "stage": state.get("stage", ""),
-                                    "io_mode": args.io_mode,
-                                    "partial_response": response,
-                                    "barge_text": barge_message,
-                                }
-                                interruption_events.append(interruption_event)
-                                _append_jsonl(args.trace_log, interruption_event)
-                                state["history"].append({"role": "agent", "text": (response + " [INTERRUPTED]").strip()})
-                                last_signals = signals
-                                last_response = response
-                                pending_user_text = barge_message
-                                continue
+                        barge_thread = None
+                        playback_thread.start()
+                        if args.enable_barge_in:
+                            barge_thread = threading.Thread(target=_barge_monitor, daemon=True)
+                            barge_thread.start()
+                        playback_thread.join(timeout=max(0.8, args.barge_max_seconds + 2.5))
+                        if barge_thread is not None:
+                            barge_stop_event.set()
+                            barge_thread.join(timeout=0.3)
+
+                        if args.enable_barge_in and interrupt_event.is_set() and not barge_message_holder.get("text"):
+                            # interruption happened but text may still be in-flight from STT worker.
+                            time.sleep(0.25)
+                            if duplex_worker is not None:
+                                late_msg = duplex_worker.poll_barge_text().strip()
+                                if late_msg:
+                                    barge_message_holder["text"] = late_msg
+
+                        barge_message = (
+                            barge_message_holder.get("text", "").strip()
+                            if args.enable_barge_in
+                            else ""
+                        )
+                        if barge_message:
+                            interruption_event = {
+                                "event": "barge_in",
+                                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                                "session_id": args.session_id,
+                                "stage": state.get("stage", ""),
+                                "io_mode": args.io_mode,
+                                "partial_response": response,
+                                "barge_text": barge_message,
+                            }
+                            interruption_events.append(interruption_event)
+                            _append_jsonl(args.trace_log, interruption_event)
+                            state["history"].append({"role": "agent", "text": (response + " [INTERRUPTED]").strip()})
+                            last_signals = signals
+                            last_response = response
+                            pending_user_text = barge_message
+                            continue
                     except Exception as exc:
                         print(f"[warn] voice playback failed: {exc}")
                 last_stream_meta = {"streaming_used": False, "interrupted": False}
@@ -1070,8 +1181,8 @@ def run_live_session(args: argparse.Namespace) -> Tuple[Dict[str, Any], Dict[str
         last_response = response
 
     if not state["history"] or not last_user:
-        if auto_listen_worker is not None:
-            auto_listen_worker.stop()
+        if duplex_worker is not None:
+            duplex_worker.stop()
         if voice_io is not None:
             voice_io.close()
         raise RuntimeError("No conversation turns captured.")
@@ -1143,8 +1254,8 @@ def run_live_session(args: argparse.Namespace) -> Tuple[Dict[str, Any], Dict[str
     _append_jsonl(args.trace_log, trace_event)
 
     if voice_io is not None:
-        if auto_listen_worker is not None:
-            auto_listen_worker.stop()
+        if duplex_worker is not None:
+            duplex_worker.stop()
         voice_io.close()
 
     return session_payload, policy, script_pack
@@ -1395,8 +1506,6 @@ def main() -> None:
     parser.add_argument("--fallback-on-llm-error", action="store_true")
 
     parser.add_argument("--io-mode", choices=["text", "voice"], default="text")
-    parser.add_argument("--voice-auto-listen", dest="voice_auto_listen", action="store_true")
-    parser.add_argument("--voice-manual-turn", dest="voice_auto_listen", action="store_false")
     parser.add_argument("--voice-sample-rate", type=int, default=16000)
     parser.add_argument("--voice-frame-ms", type=int, default=20)
     parser.add_argument("--voice-vad-mode", type=int, default=2)
@@ -1412,6 +1521,8 @@ def main() -> None:
     parser.add_argument("--tts-voice", type=str, default="alloy")
     parser.add_argument("--tts-response-format", type=str, default="wav")
     parser.add_argument("--tts-speed", type=float, default=1.0)
+    parser.add_argument("--tts-segment-chars-first", type=int, default=24)
+    parser.add_argument("--tts-segment-chars-next", type=int, default=56)
     parser.add_argument(
         "--opening-greeting",
         type=str,
@@ -1423,13 +1534,8 @@ def main() -> None:
     parser.add_argument("--enable-barge-in", dest="enable_barge_in", action="store_true")
     parser.add_argument("--disable-barge-in", dest="enable_barge_in", action="store_false")
     parser.add_argument("--barge-prefix", type=str, default="/barge ")
-    parser.add_argument("--barge-trigger-ms", type=int, default=80)
     parser.add_argument("--barge-max-seconds", type=float, default=6.0)
-    parser.add_argument("--barge-silence-ms", type=int, default=650)
-    parser.add_argument("--barge-preroll-ms", type=int, default=260)
-    parser.add_argument("--barge-ignore-ms", type=int, default=80)
-    parser.add_argument("--echo-gate-ratio", type=float, default=1.35)
-    parser.set_defaults(streaming=True, enable_barge_in=True, voice_auto_listen=True)
+    parser.set_defaults(streaming=True, enable_barge_in=True)
 
     parser.add_argument("--self-improve", action="store_true")
     parser.add_argument("--self-improve-cycles", type=int, default=2)

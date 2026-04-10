@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import socket
 import threading
 import urllib.error
 import urllib.request
@@ -205,9 +206,29 @@ class OpenAIChatClient:
         interrupted = False
         try:
             with urllib.request.urlopen(req, timeout=self.timeout_s) as resp:
-                for raw_line in resp:
+                # Put the underlying socket in short-timeout mode so stop_event
+                # can interrupt streaming quickly even when SSE gaps occur.
+                try:
+                    raw = getattr(resp, "fp", None)
+                    if raw is not None:
+                        raw_inner = getattr(raw, "raw", None)
+                        if raw_inner is not None and hasattr(raw_inner, "_sock"):
+                            raw_inner._sock.settimeout(0.2)  # type: ignore[attr-defined]
+                except Exception:
+                    pass
+
+                while True:
                     if stop_event is not None and stop_event.is_set():
                         interrupted = True
+                        break
+
+                    try:
+                        raw_line = resp.readline()
+                    except (socket.timeout, TimeoutError, OSError, ValueError) as exc:
+                        if "timed out" in str(exc).lower():
+                            continue
+                        raise
+                    if not raw_line:
                         break
 
                     line = raw_line.decode("utf-8", errors="ignore").strip()

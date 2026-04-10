@@ -54,8 +54,8 @@ voice-chat:
 		--io-mode voice \
 		--stt-language en \
 		--voice-energy-threshold 260 \
-		--barge-trigger-ms 80 \
-		--barge-ignore-ms 80 \
+		--tts-segment-chars-first 24 \
+		--tts-segment-chars-next 56 \
 		--timeout-s 60 \
 		--policy config/policy_version.yaml \
 		--scripts assets/script_pack_v0.json \
@@ -70,8 +70,8 @@ voice-chat-improve:
 		--io-mode voice \
 		--stt-language en \
 		--voice-energy-threshold 260 \
-		--barge-trigger-ms 80 \
-		--barge-ignore-ms 80 \
+		--tts-segment-chars-first 24 \
+		--tts-segment-chars-next 56 \
 		--timeout-s 60 \
 		--policy config/policy_version.yaml \
 		--scripts assets/script_pack_v0.json \

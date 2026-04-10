@@ -95,7 +95,7 @@ Voice mode keeps the same self-improvement loop and state workflow, but uses:
 - STT: OpenAI `/audio/transcriptions` (`gpt-4o-mini-transcribe` by default),
 - TTS: OpenAI `/audio/speech` (`gpt-4o-mini-tts`, configurable voice/model),
 - Always-on mic stream: background capture stays open to reduce wake-up latency.
-- Barge-in: microphone-side interruption detection during agent playback, with pre-roll and echo gate.
+- Barge-in: speech-driven interruption from the duplex ASR worker while playback is running.
 
 Install optional voice dependencies:
 ```bash
@@ -119,9 +119,12 @@ Run voice mode:
 make voice-chat
 ```
 `voice-chat` runs in English-only mode (`--stt-language en` + English-only reply prompt).
-It now uses auto-listen by default (no Enter needed between turns).
-It also starts with an automatic spoken opening greeting.
-Auto-listen now runs in a background worker (mic capture + STT), so the main loop does not block on recording.
+Voice input now uses a full-duplex pipeline:
+- always-on mic capture,
+- continuous VAD segmentation in a background thread,
+- parallel STT worker,
+- speech-driven barge-in while TTS playback is running.
+The loop no longer uses press-Enter recording turns.
 
 Voice mode + self-improvement write-back:
 ```bash
@@ -136,16 +139,11 @@ python3 src/live_call_console.py \
   --tts-voice alloy \
   --voice-vad-mode 2 \
   --voice-energy-threshold 260 \
-  --barge-trigger-ms 80 \
-  --barge-preroll-ms 300 \
-  --barge-ignore-ms 80 \
-  --echo-gate-ratio 1.35 \
-  --barge-silence-ms 650
+  --voice-preroll-ms 220 \
+  --tts-segment-chars-first 24 \
+  --tts-segment-chars-next 56
 ```
-
-In voice mode, if you type normal text (not `/end` or `/state`) at the prompt,
-it is treated as direct user input for that turn (useful for debugging STT errors).
-Use `--voice-manual-turn` if you want the old press-Enter-per-turn behavior.
+In voice mode, typing normal text (not `/end` or `/state`) is still supported as direct user input for debugging.
 
 ## Key Output Artifacts
 - Live session output: `tests/live_calls/<SESSION_ID>.json`
@@ -159,6 +157,7 @@ Use `--voice-manual-turn` if you want the old press-Enter-per-turn behavior.
 - `workflow_spec.md`
 - `improvement_policy.md`
 - `evaluation_rubric.md`
+- `docs/voice_duplex.md` (full-duplex voice architecture and tuning guide)
 
 ## Notes
 - This repository intentionally prioritizes explainability and reproducibility for take-home assessment evaluation.
